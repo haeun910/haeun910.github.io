@@ -1,0 +1,24 @@
+{
+  "name": "toeic-sentence-vocab",
+  "version": "1.0.0",
+  "description": "토익 문장 단어장: 유료 서비스 버전 (Vite + Supabase + Toss Payments)",
+  "scripts": {
+    "dev": "VITE_DEMO=1 vite",
+    "build": "vite build",
+    "build:demo": "VITE_DEMO=1 VITE_BASE=/toeic-next/ VITE_OUT_DIR=../toeic-next vite build",
+    "build:prod": "VITE_OUT_DIR=../toeic vite build",
+    "preview": "vite preview",
+    "demo:words": "node scripts/make-demo-words.mjs content/words.json",
+    "seed": "node scripts/seed-words.mjs content/words.json"
+  },
+  "license": "UNLICENSED",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "vite": "^6.3.5"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.4",
+    "@tosspayments/tosspayments-sdk": "^2.3.4"
+  }
+}

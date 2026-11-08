@@ -1,0 +1,10 @@
+# Supabase CLI project config (only the parts that matter for this app).
+[functions.confirm-payment]
+verify_jwt = true
+
+[functions.delete-account]
+verify_jwt = true
+
+# Toss calls this without a Supabase token; the function verifies the payment against the Toss API instead.
+[functions.toss-webhook]
+verify_jwt = false
