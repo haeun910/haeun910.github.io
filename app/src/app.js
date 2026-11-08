@@ -1,7 +1,7 @@
 // Study views: home, course/free-study runs (card, ordering, blank quiz, translation quiz), done, score log, word book.
 // Ported from the validated prototype; adds free-tier gating and a shared session.
 import { WORDS, BY, HL, HLKO, PARTS, GLOSS, QOPT, TRAPS, VTRAPS, CATALOG, LV_NAME, LV_RANK, isExpr, lvOf, sentence, lockedCount } from "./content.js";
-import { S, save, today, addDays, replaceState } from "./state.js";
+import { S, save, today, addDays, replaceState, parseBackup } from "./state.js";
 import { esc, shuffle, toast, speak, $ } from "./ui.js";
 import { CONFIG } from "./config.js";
 import { SESSION, go, track } from "./session.js";
@@ -199,10 +199,8 @@ function bindBackup() {
     catch (e) { box.focus(); box.select(); toast("아래 글자를 모두 선택해서 복사해 주세요", 2400); }
   };
   $("bk-load").onclick = () => {
-    let data = null;
-    try { data = JSON.parse(box.value.trim()); } catch (e) { }
-    const ok = data && typeof data === "object" && !Array.isArray(data) && typeof (data.learned || {}) === "object" && typeof (data.book || {}) === "object" && Array.isArray(data.scores || []);
-    if (!ok) { toast("기록 형식이 맞지 않아요. 복사한 글자를 빠짐없이 붙여넣어 주세요", 2600); return; }
+    const data = parseBackup(box.value.trim());
+    if (!data) { toast("기록 형식이 맞지 않아요. 복사한 글자를 빠짐없이 붙여넣어 주세요", 2600); return; }
     const n = Object.keys(data.learned || {}).length;
     if (!confirm(`배운 단어 ${n}개가 담긴 기록으로 바꿀까요? 지금 이 기기의 기록은 사라져요.`)) return;
     replaceState(data); box.value = ""; toast("기록을 불러왔어요", 2000); render();

@@ -22,6 +22,27 @@ function normalize(s) {
   return s;
 }
 
+// Checks a pasted backup against the shape the views read, and returns a clean copy (or null).
+// Today's in-progress course is dropped: it is rebuilt from the words on the next start.
+export function parseBackup(text) {
+  let d; try { d = JSON.parse(text); } catch (e) { return null; }
+  const obj = v => v !== null && typeof v === "object" && !Array.isArray(v);
+  const str = v => typeof v === "string";
+  const num = v => typeof v === "number" && isFinite(v);
+  const date = v => str(v) && /^\d{4}-\d{2}-\d{2}$/.test(v);
+  if (!obj(d)) return null;
+  const learned = d.learned === undefined ? {} : d.learned, book = d.book === undefined ? {} : d.book;
+  const srs = d.srs === undefined ? {} : d.srs, scores = d.scores === undefined ? [] : d.scores;
+  if (!obj(learned) || !Object.values(learned).every(date)) return null;
+  if (!obj(srs) || !Object.values(srs).every(e => obj(e) && num(e.box) && date(e.due) && (e.last === undefined || date(e.last)))) return null;
+  if (!obj(book) || !Object.entries(book).every(([k, e]) => obj(e) && e.key === k && str(e.word) && num(e.count) && num(e.streak)
+      && Array.isArray(e.sentences) && e.sentences.every(s => obj(s) && str(s.en)) && Array.isArray(e.confused || []))) return null;
+  if (!Array.isArray(scores) || !scores.every(s => obj(s) && num(s.lc) && num(s.rc))) return null;
+  if (d.examDate !== undefined && d.examDate !== "" && !date(d.examDate)) return null;
+  if (d.perDay !== undefined && !num(d.perDay)) return null;
+  return { ...d, learned, book, srs, scores, course: null };
+}
+
 export function replaceState(next, { touch = true } = {}) {
   S = normalize(next);
   if (touch) S.updatedAt = Date.now();
