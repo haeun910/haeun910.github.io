@@ -13,7 +13,7 @@ export const isExpr = w => EXPR.includes(w.pos);
 export const lvOf = id => LEVEL[id] || "600";
 export const sentence = w => w.chunks.join(" ");
 
-const CACHE_KEY = "toeic-words-v" + CONFIG.contentVersion;
+const CACHE_KEY = CONFIG.storageNs + "toeic-words-v" + CONFIG.contentVersion;
 
 function reset() {
   WORDS.length = 0;

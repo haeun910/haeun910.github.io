@@ -1,6 +1,6 @@
 // Boot: local state → backend → entitlement → words → account sync → router.
 import "./styles.css";
-import { CONFIG, BASE } from "./config.js";
+import { CONFIG, BASE, SEEN_KEY } from "./config.js";
 import { createBackend } from "./backend/index.js";
 import { loadLocal, attachBackend, mergeRemote, flushSave, isEmptyState, onChange } from "./state.js";
 import { SESSION, go, refreshAccess, track } from "./session.js";
@@ -16,12 +16,16 @@ let lastPath = "";
 function path() {
   const h = location.hash.replace(/^#\/?/, "").split("?")[0];
   if (h) return h;
-  let seen = false; try { seen = !!localStorage.getItem("toeic-seen"); } catch (e) { }
+  let seen = false; try { seen = !!localStorage.getItem(SEEN_KEY); } catch (e) { }
   return (!SESSION.user && !seen && isEmptyState()) ? "welcome" : "home";
 }
 
+// Free beta has no accounts or payments: those screens send people home.
+const PRODUCT_ONLY = ["plans", "account", "login", "terms", "privacy", "refund"];
+
 function route() {
   const p = path();
+  if (CONFIG.freeOnly && PRODUCT_ONLY.includes(p)) { location.replace("#/home"); return; }
   if (p !== lastPath) { app.resetRun(); window.scrollTo(0, 0); }
   lastPath = p;
   document.querySelectorAll("nav.tabs a").forEach(a => a.setAttribute("aria-current", String(a.dataset.view === p)));
@@ -43,10 +47,12 @@ function route() {
 
 function syncLine() {
   const el = $("sync"); if (!el) return;
+  if (CONFIG.freeOnly) { el.textContent = "학습 기록은 이 기기의 브라우저에만 저장돼요. 브라우저 데이터를 지우면 사라지니, 학습 설정의 '기록 백업'으로 가끔 저장해 두세요."; return; }
   el.textContent = SESSION.user ? "학습 기록이 계정에 저장돼요. 다른 기기에서도 이어서 할 수 있어요." : "학습 기록은 이 브라우저에 저장돼요. 로그인하면 계정에 저장돼요.";
 }
 
 async function boot() {
+  if (CONFIG.freeOnly) { const a = $("acct"); if (a) a.hidden = true; }
   $("foot").innerHTML = `<p class="sync" id="sync"></p>` + footerNotice();
   document.querySelectorAll("nav.tabs a").forEach(a => a.onclick = e => { e.preventDefault(); app.resetRun(); go("#/" + a.dataset.view); });
   loadLocal();
@@ -65,7 +71,7 @@ async function boot() {
   window.addEventListener("hashchange", route);
   route();
   track("app_open", { entitled: SESSION.entitled, signed_in: !!SESSION.user });
-  $("wcount").textContent = CONFIG.demo ? "데모" : "단어 " + CATALOG.length.toLocaleString("ko-KR") + "개";
+  $("wcount").textContent = CONFIG.freeOnly ? "무료 베타 · " + CATALOG.length + "개" : CONFIG.demo ? "데모" : "단어 " + CATALOG.length.toLocaleString("ko-KR") + "개";
   addEventListener("pagehide", () => { flushSave(); });
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flushSave(); });
   if ("serviceWorker" in navigator && !import.meta.env.DEV) navigator.serviceWorker.register(BASE + "sw.js").catch(() => { });

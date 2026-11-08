@@ -33,7 +33,8 @@ export function createLocalBackend() {
     async signOut() { acct = null; b._setUser(null); },
     async deleteAccount() { write(null); acct = null; b._setUser(null); },
 
-    async getEntitlement() { const p = b.user && acct && acct.pass; if (p && new Date(p.ends_at) > new Date()) return { active: true, ends_at: p.ends_at, plan_id: p.plan_id }; return { active: false }; },
+    // Free beta: the bundled words are the free words only, so everything in the bundle is open.
+    async getEntitlement() { if (import.meta.env.VITE_FREE === "1") return { active: true, free_beta: true }; const p = b.user && acct && acct.pass; if (p && new Date(p.ends_at) > new Date()) return { active: true, ends_at: p.ends_at, plan_id: p.plan_id }; return { active: false }; },
     async getCatalog() { await ensureWords(); return catalog; },
     async getWords() { await ensureWords(); const ent = await b.getEntitlement(); return words.filter(w => ent.active || w.tier === "free"); },
 

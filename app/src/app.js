@@ -1,7 +1,7 @@
 // Study views: home, course/free-study runs (card, ordering, blank quiz, translation quiz), done, score log, word book.
 // Ported from the validated prototype; adds free-tier gating and a shared session.
 import { WORDS, BY, HL, HLKO, PARTS, GLOSS, QOPT, TRAPS, VTRAPS, CATALOG, LV_NAME, LV_RANK, isExpr, lvOf, sentence, lockedCount } from "./content.js";
-import { S, save, today, addDays } from "./state.js";
+import { S, save, today, addDays, replaceState } from "./state.js";
 import { esc, shuffle, toast, speak, $ } from "./ui.js";
 import { CONFIG } from "./config.js";
 import { SESSION, go, track } from "./session.js";
@@ -10,6 +10,7 @@ const $app = () => $("app");
 const entitled = () => SESSION.entitled;
 const effPerDay = () => entitled() ? S.perDay : Math.min(S.perDay, CONFIG.free.perDayMax);
 const effGoal = () => { const g = S.goal || "all"; return entitled() || CONFIG.free.goals.includes(g) ? g : "all"; };
+const LVS = () => ["600", "750", "900"].filter(l => CATALOG.some(x => x.lv === l)); // levels this build has
 const LOCK = `<svg class="lock" viewBox="0 0 16 16" width="12" height="12" aria-label="이용권 필요"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="currentColor"/><path d="M5 7V5a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>`;
 
 // ---------- Spaced repetition: 1→3→7→14→30→60 days when right, next day when wrong ----------
@@ -63,7 +64,7 @@ function startCourse() {
   if (!S.course || S.course.date !== today()) buildCourse();
   if (!S.course.ids.length && !(S.course.lists.review || []).length) {
     if (!entitled() && lockedCount()) { toast("무료 단어를 모두 배웠어요. 이용권으로 나머지 단어를 열 수 있어요", 2600); go("#/plans"); return; }
-    toast("이 레벨의 새 단어를 모두 배웠어요. 목표 레벨을 올리거나 선택 학습으로 복습해 보세요", 2600); return;
+    toast(CONFIG.freeOnly ? "베타 단어를 모두 배웠어요. 선택 학습으로 복습해 보세요" : "이 레벨의 새 단어를 모두 배웠어요. 목표 레벨을 올리거나 선택 학습으로 복습해 보세요", 2600); return;
   }
   if (!S.course.ids.length) { S.course.steps = ["review"]; S.course.step = 0; }
   run = { kind: "course", steps: S.course.steps || ["card", "order", "quiz"] };
@@ -113,7 +114,7 @@ function renderHome() {
   const stepState = k => { if (!c) return ""; const i = csteps.indexOf(k); return c.done || c.step > i ? "done" : c.step === i ? "on" : ""; };
   const courseLabel = !c ? "오늘 코스 시작" : c.done ? "오늘 코스 다시 하기" : (c.step || c.idx) ? "이어서 하기" : "오늘 코스 시작";
   const perDay = effPerDay();
-  const lvRows = ["600", "750", "900"].map(l => {
+  const lvRows = LVS().map(l => {
     const all = CATALOG.filter(x => x.lv === l), got = all.filter(x => S.learned[x.id]).length, open = WORDS.filter(w => lvOf(w.id) === l).length;
     return `<div class="lvrow"><span class="lvb">${LV_NAME[l]}</span><span class="bar"><i style="width:${all.length ? Math.round(got / all.length * 100) : 0}%"></i></span><span class="cnt">${got} / ${all.length}${open < all.length ? " " + LOCK : ""}</span></div>`;
   }).join("");
@@ -155,7 +156,7 @@ function renderHome() {
     <h2>선택 학습</h2>
     <div class="row">
       <label class="f">활동<select id="act"><option value="mix">섞어서 (모든 유형)</option><option value="order">문장 배열</option><option value="quiz">빈칸 퀴즈</option><option value="trans">해석 퀴즈</option><option value="card">암기카드</option></select></label>
-      <label class="f">범위<select id="scope"><option value="book">나만의 단어장</option><option value="learned">배운 단어</option><option value="due">오늘 복습할 단어</option><option value="lv600">600점 단어</option><option value="lv750">750점 단어${entitled() ? "" : " · 이용권"}</option><option value="lv900">900점+ 단어${entitled() ? "" : " · 이용권"}</option><option value="pos:구동사">구동사</option><option value="pos:숙어">숙어·관용 표현</option><option value="pos:복합명사">복합명사</option><option value="all">전체 단어</option></select></label>
+      <label class="f">범위<select id="scope"><option value="book">나만의 단어장</option><option value="learned">배운 단어</option><option value="due">오늘 복습할 단어</option>${LVS().map(l => `<option value="lv${l}">${LV_NAME[l]} 단어${entitled() || CONFIG.free.goals.includes(l) ? "" : " · 이용권"}</option>`).join("")}<option value="pos:구동사">구동사</option><option value="pos:숙어">숙어·관용 표현</option><option value="pos:복합명사">복합명사</option><option value="all">전체 단어</option></select></label>
     </div>
     <button class="btn" id="free">10문제 시작</button>
   </section>
@@ -166,9 +167,15 @@ function renderHome() {
         <label class="f">시험일<input type="date" id="exam" value="${esc(S.examDate)}"></label>
         <label class="f">하루 새 단어<select id="perday">${[10, 20, 30, 40, 50].map(n => `<option value="${n}" ${n == perDay ? "selected" : ""} ${!entitled() && n > CONFIG.free.perDayMax ? "disabled" : ""}>${n}${!entitled() && n > CONFIG.free.perDayMax ? " · 이용권" : ""}</option>`).join("")}</select></label>
       </div>
-      <label class="f">목표 레벨 (새 단어 순서)<select id="goal">${[["all", "전체 · 기본 순서"], ["600", "600점 · 기초 단어만"], ["750", "750점 · 기초 → 중급"], ["900", "900점+ · 쉬운 단어부터 전부"]].map(([v, t]) => `<option value="${v}" ${effGoal() === v ? "selected" : ""} ${!entitled() && !CONFIG.free.goals.includes(v) ? "disabled" : ""}>${t}${!entitled() && !CONFIG.free.goals.includes(v) ? " · 이용권" : ""}</option>`).join("")}</select></label>
+      <label class="f"${LVS().length < 2 ? " hidden" : ""}>목표 레벨 (새 단어 순서)<select id="goal">${[["all", "전체 · 기본 순서"], ["600", "600점 · 기초 단어만"], ["750", "750점 · 기초 → 중급"], ["900", "900점+ · 쉬운 단어부터 전부"]].filter(([v]) => v === "all" || LVS().includes(v)).map(([v, t]) => `<option value="${v}" ${effGoal() === v ? "selected" : ""} ${!entitled() && !CONFIG.free.goals.includes(v) ? "disabled" : ""}>${t}${!entitled() && !CONFIG.free.goals.includes(v) ? " · 이용권" : ""}</option>`).join("")}</select></label>
       <label class="f">문장 배열 난이도<select id="level"><option value="easy" ${S.level === "easy" ? "selected" : ""}>쉬움 · 표현 덩어리로 묶음</option><option value="normal" ${(S.level || "normal") === "normal" ? "selected" : ""}>보통 · 한 단어씩</option><option value="hard" ${S.level === "hard" ? "selected" : ""}>어려움 · 함정 블록 포함</option></select></label>
       <label class="toggle"><input type="checkbox" id="hint" ${S.hint !== false ? "checked" : ""}> 문장 배열에서 오늘의 단어 힌트 보여주기</label>
+      ${!SESSION.user ? `<div class="xfer">
+        <span class="eyebrow">기록 백업</span>
+        <p class="muted" style="margin:0">학습 기록은 이 브라우저에만 있어요. 브라우저 데이터를 지우거나 기기를 바꾸기 전에 복사해 두고, 나중에 붙여넣어 불러오세요.</p>
+        <div class="row"><button class="btn" id="bk-copy">내 기록 복사</button><button class="btn" id="bk-load">붙여넣은 기록 불러오기</button></div>
+        <textarea id="bk-text" rows="3" placeholder="복사한 기록을 여기에 붙여넣으세요" aria-label="백업한 학습 기록"></textarea>
+      </div>` : ""}
       ${!entitled() ? `<p class="muted" style="margin:0">하루 새 단어 20개 이상과 750점·900점+ 목표는 <a href="#/plans">이용권</a>이 있어야 쓸 수 있어요.</p>` : ""}
     </div>
   </details>`;
@@ -180,6 +187,26 @@ function renderHome() {
   $("perday").onchange = e => { S.perDay = +e.target.value; if (S.course && S.course.date === today() && !S.course.step && !S.course.idx) S.course = null; save(); render(); };
   $("go").onclick = () => { if (c && c.done) { S.course = null; } startCourse(); };
   $("free").onclick = () => startFree($("act").value, $("scope").value);
+  if ($("bk-copy")) bindBackup();
+}
+
+// Guest backup: the whole learner state as one JSON string the person keeps (clipboard or a note app).
+function bindBackup() {
+  const box = $("bk-text");
+  $("bk-copy").onclick = async () => {
+    const txt = JSON.stringify(S); box.value = txt;
+    try { await navigator.clipboard.writeText(txt); toast("기록을 복사했어요. 메모 앱 등에 붙여넣어 보관하세요", 2400); }
+    catch (e) { box.focus(); box.select(); toast("아래 글자를 모두 선택해서 복사해 주세요", 2400); }
+  };
+  $("bk-load").onclick = () => {
+    let data = null;
+    try { data = JSON.parse(box.value.trim()); } catch (e) { }
+    const ok = data && typeof data === "object" && !Array.isArray(data) && typeof (data.learned || {}) === "object" && typeof (data.book || {}) === "object" && Array.isArray(data.scores || []);
+    if (!ok) { toast("기록 형식이 맞지 않아요. 복사한 글자를 빠짐없이 붙여넣어 주세요", 2600); return; }
+    const n = Object.keys(data.learned || {}).length;
+    if (!confirm(`배운 단어 ${n}개가 담긴 기록으로 바꿀까요? 지금 이 기기의 기록은 사라져요.`)) return;
+    replaceState(data); box.value = ""; toast("기록을 불러왔어요", 2000); render();
+  };
 }
 
 function runHeader() {
@@ -456,6 +483,7 @@ function renderDone() {
     <div style="font-size:22px;font-weight:800;font-family:var(--f-display)">${course ? "오늘 코스를 마쳤어요" : "선택 학습을 마쳤어요"}</div>
     <p class="muted" style="margin:0">틀린 단어는 나만의 단어장에 모였어요. 맞힌 단어는 1일, 3일, 7일처럼 점점 간격을 늘려서, 틀린 단어는 바로 다음 날 다시 복습해요.</p>
     ${nudge}
+    ${CONFIG.freeOnly && course && CONFIG.feedbackUrl ? `<p class="muted" style="margin:0">써 보니 어땠나요? <a href="${esc(CONFIG.feedbackUrl)}" target="_blank" rel="noopener">1분 의견 남기기</a></p>` : ""}
     <div class="row"><button class="btn" id="book">단어장 보기</button><button class="btn primary" id="home">홈으로</button></div>
   </section>`;
   run = null;

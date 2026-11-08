@@ -52,7 +52,14 @@ export function refundHtml() {
 <h3>문의</h3><p>${esc(MAIL)}</p>`;
 }
 
+const TSL = `단어 목록: <a href="https://www.newgeneralservicelist.com/toeic-service-list" target="_blank" rel="noopener">TOEIC Service List</a> (Browne &amp; Culligan, <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.ko" target="_blank" rel="noopener">CC BY-SA 4.0</a>)에서 단어를 골라 뜻·예문·문제를 붙였어요.`;
+
 export function footerNotice() {
+  if (CONFIG.freeOnly) {
+    const fb = CONFIG.feedbackUrl ? ` · <a href="${esc(CONFIG.feedbackUrl)}" target="_blank" rel="noopener">의견 보내기</a>` : "";
+    return `<p class="sync credit">${TSL} 예문과 해설은 이 앱에서 직접 만든 문장이에요.</p>
+<p class="sync credit">이 앱은 개인정보를 수집하지 않아요. 학습 기록은 이 브라우저에만 저장되고, 글꼴은 Google Fonts에서 불러와요.${fb}</p>`;
+  }
   return `<p class="sync biz">${esc(B.name)} · 대표 ${esc(B.owner)} · 사업자등록번호 ${esc(B.regNo)} · 통신판매업신고 ${esc(B.mailOrderNo)}<br>${esc(B.address)} · ${esc(B.phone)} · ${esc(MAIL)}</p>
-<p class="sync credit">단어 목록: TOEIC Service List (Browne &amp; Culligan, CC BY-SA 4.0) · 예문과 해설은 ${esc(B.name)}의 저작물입니다. · <a href="#/terms">이용약관</a> · <a href="#/privacy">개인정보처리방침</a> · <a href="#/refund">환불규정</a></p>`;
+<p class="sync credit">${TSL} · 예문과 해설은 ${esc(B.name)}의 저작물입니다. · <a href="#/terms">이용약관</a> · <a href="#/privacy">개인정보처리방침</a> · <a href="#/refund">환불규정</a></p>`;
 }

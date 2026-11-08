@@ -3,7 +3,7 @@ import { CONFIG } from "../config.js";
 // The demo backend (and its bundled word data) is only compiled into a build when VITE_DEMO=1;
 // the literal comparison lets the bundler drop the branch, so a production build never ships the words.
 export async function createBackend() {
-  if (import.meta.env.VITE_DEMO === "1") {
+  if (import.meta.env.VITE_DEMO === "1" || import.meta.env.VITE_FREE === "1") {
     const { createLocalBackend } = await import("./local.js");
     return createLocalBackend();
   }

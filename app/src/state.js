@@ -1,8 +1,10 @@
 // Learner state: one JSON document per person. Saved locally at once, synced to the account when signed in.
 import { today, addDays } from "./ui.js";
+import { CONFIG } from "./config.js";
 
-export const KEY = "toeic-state-v1";
-export const LEGACY_KEY = "toeic-proto-v1"; // the prototype's key, migrated on first run
+export const KEY = CONFIG.storageNs + "toeic-state-v1";
+// the prototype's key, migrated on first run. Namespaced builds (free beta) start clean instead.
+export const LEGACY_KEY = CONFIG.storageNs ? "" : "toeic-proto-v1";
 export const blank = () => ({ examDate: "", perDay: 20, scores: [], target: 0, learned: {}, book: {}, course: null, srs: {}, updatedAt: 0 });
 
 export let S = blank();
@@ -31,7 +33,7 @@ function persistLocal() { try { localStorage.setItem(KEY, JSON.stringify(S)); } 
 
 export function loadLocal() {
   let raw = null;
-  try { raw = localStorage.getItem(KEY) || localStorage.getItem(LEGACY_KEY); } catch (e) { }
+  try { raw = localStorage.getItem(KEY) || (LEGACY_KEY ? localStorage.getItem(LEGACY_KEY) : null); } catch (e) { }
   if (raw) { try { S = normalize(JSON.parse(raw)); } catch (e) { S = blank(); } }
   else S = blank();
   return S;

@@ -32,7 +32,8 @@ export default defineConfig(({ mode }) => {
       outDir: env.VITE_OUT_DIR || "dist",
       emptyOutDir: true,
       target: "es2019",
-      rollupOptions: { input: { main: here + "index.html", pay: here + "pay.html" } },
+      // the free beta has no payments, so it ships without pay.html
+      rollupOptions: { input: env.VITE_FREE === "1" ? { main: here + "index.html" } : { main: here + "index.html", pay: here + "pay.html" } },
     },
     plugins: [serviceWorker()],
   };

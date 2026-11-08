@@ -74,7 +74,13 @@ npm run build:prod       # ../toeic/ 에 결과물 생성 → 커밋·푸시하�
 ```
 기존 프로토타입 사용자의 기록(`toeic-proto-v1`)은 첫 실행 때 자동으로 새 형식으로 옮겨져요.
 
-데모(서버 없이 브라우저 안에서 로그인·결제 흉내): `npm run demo:words && npm run build:demo` → `../toeic-next/`. 데모 로그인 코드는 `123456`.
+데모(서버 없이 브라우저 안에서 로그인·결제 흉내): `npm run build:demo` → `../toeic-next/`. 데모 로그인 코드는 `123456`. (단어 데이터 생성까지 함께 해요.)
+
+무료 베타(로그인·결제 없이 무료 단어 230개만): `npm run build:free` → `../toeic-free/`.
+- 번들에는 무료 단어만 들어가요. 유료 단어는 빌드 결과물에 없어요.
+- 저장 키 앞에 `free-`가 붙어서 같은 주소(haeun910.github.io)의 /toeic/, /toeic-next/ 기록과 섞이지 않아요.
+- 개인정보를 받지 않으니 약관·개인정보처리방침·사업자 정보 화면이 없어요. 하단에 출처(CC BY-SA)와 "개인정보를 수집하지 않아요" 안내만 나와요.
+- 의견 받기 링크: `VITE_FEEDBACK_URL=https://forms.gle/... npm run build:free` 처럼 주소를 넣고 빌드하면 하단과 코스 완료 화면에 "의견 보내기"가 나와요.
 
 ## 결제 흐름
 
