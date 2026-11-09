@@ -370,3 +370,7 @@ td.hl-r,td .hl-r,.num.hl-r{color:var(--ink);font-weight:700}
 .callout{background:var(--panel)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) figure .frame[style*="#fff"] img{filter:brightness(.86)}}
 :root[data-theme="dark"] figure .frame[style*="#fff"] img{filter:brightness(.86)}
+
+/* 11/09 리뷰 반영: 작은 글씨 키우기 */
+.meta dt,.toc h4,.toc a span,.badge,.ba small,.units span{font-size:12.5px}
+.axis,.scale,.gticks,.mod .files span{font-size:12px}
