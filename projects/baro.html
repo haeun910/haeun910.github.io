@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BARO · 장하은 포트폴리오</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<meta name="description" content="방문 전에 민원 처리 방법 · 실시간 대기 · 교통을 안내하는 서비스">
+<link rel="stylesheet" href="../assets/project.css">
+</head>
+<body>
+<div class="page">
+  <div class="top">
+    <a href="../index.html#projects">← 장하은 포트폴리오</a>
+    <span>PROJECT 03 · BARO</span>
+  </div>
+
+  <header class="phead">
+    <div>
+      <p class="cap">개인 프로젝트 · 공공데이터 민원 안내</p>
+      <h1>BARO</h1>
+      <p class="tagline">헛걸음 없이, 방문 전에 처리 방법부터</p>
+      <p class="hashes"><span>#공공데이터API</span><span>#서버리스</span><span>#LLM추천</span><span>#반응형웹</span></p>
+    </div>
+    <dl class="meta">
+      <dt>기간</dt><dd>2026.04 · 2026.10 고도화 · 개인 프로젝트</dd>
+      <dt>담당</dt><dd class="role">기획 · 데이터 조사 · 프론트 · 서버 · 배포 (1인 개발)</dd>
+      <dt>스택</dt><dd>Vanilla JS · Leaflet · Node.js · Vercel Serverless · Claude API</dd>
+      <dt>링크</dt><dd class="links"><a href="https://baro-system.vercel.app">↗ 서비스</a></dd>
+    </dl>
+  </header>
+
+  <div class="wrap">
+    <nav class="toc" aria-label="목차">
+      <h4>프로젝트</h4>
+      <ol>
+        <li><a href="#overview"><span>01</span>개요</a></li>
+        <li><a href="#system"><span>02</span>시스템 구조</a></li>
+      </ol>
+      <h4>내 작업</h4>
+      <ol class="mine">
+        <li><a href="#ai"><span>03</span>유형별 AI 추천</a></li>
+        <li><a href="#normalize"><span>04</span>API 응답 정규화</a></li>
+        <li><a href="#speed"><span>05</span>응답 속도 개선</a></li>
+      </ol>
+    </nav>
+
+    <main class="content">
+
+      <section class="sec" id="overview">
+        <div class="sh"><div class="no"><b>01</b></div><h2>개요</h2></div>
+        <figure><div class="frame"><img src="../img/baro/pc-ai.jpg" alt="PC 화면: 노약자 · 주민등록등본 선택 시 AI 맞춤 처리 방법 추천" width="1400" height="875" loading="lazy"></div>
+          <figcaption><b>AI 맞춤 처리 방법 (PC).</b> 사용자 유형에 맞춘 추천 · 구비서류 · 처리 방법 비교</figcaption></figure>
+        <div class="cols" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,.42fr)">
+          <figure><div class="frame"><img src="../img/baro/pc-office.jpg" alt="PC 화면: 지도와 주변 민원실 거리순 목록" width="880" height="733" loading="lazy"></div><figcaption><b>주변 민원실.</b> 거리순 · 운영 시간</figcaption></figure>
+          <figure><div class="frame"><img src="../img/baro/pc-wait.jpg" alt="PC 화면: 민원실 창구별 실시간 대기 인원" width="880" height="733" loading="lazy"></div><figcaption><b>실시간 대기.</b> 창구별 대기 인원</figcaption></figure>
+          <figure><div class="frame"><img src="../img/baro/ai.jpg" alt="모바일 AI 처리 방법 화면" width="430" height="750" loading="lazy"></div><figcaption><b>모바일</b></figcaption></figure>
+        </div>
+        <div class="cols">
+          <div class="col">
+            <div class="blk"><h3>무엇을 하나</h3>
+              <ul class="b">
+                <li>방문 전에 <b>민원 처리 방법 · 실시간 대기 · 교통</b>을 한 번에 안내하는 웹 서비스</li>
+                <li>노약자 · 장애인 · 유모차 · 임산부 · 외국인 등 <b>6가지 사용자 유형</b>에 맞춰 처리 방법을 추천</li>
+              </ul>
+            </div>
+            <dl class="spec">
+              <dt>기능</dt><dd>AI 처리 방법 추천 · 민원실 지도 · 실시간 대기 · 교통</dd>
+              <dt>데이터</dt><dd>공공데이터 실시간 API 4종 + Claude API</dd>
+            </dl>
+          </div>
+          <div class="col">
+            <p>2026.10 고도화에서 한 번 받은 데이터를 서버에 저장해 다시 쓰도록 바꿔, 버스 노선 반복 조회를 3.18초에서 0.30초로 줄였습니다.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="system">
+        <div class="sh"><div class="no"><b>02</b></div><h2>브라우저 → 서버 함수 → 공공 API · Claude</h2></div>
+        <figure><div class="frame scroll" style="background:#fff"><img src="../img/baro/architecture.png" alt="BARO 구조도: 사용자 브라우저가 Vercel 서버의 공통 코드를 거쳐 공공데이터 4종과 Claude를 호출" width="2800" height="771" loading="lazy"></div>
+          <figcaption><b>전체 구조.</b> 브라우저는 서버 주소만 알고, 외부 기관 · AI 주소와 인증 키는 서버만 압니다.</figcaption></figure>
+        <div class="units">
+          <div><span>브라우저 차단 해결</span><b>서버 함수가 대신 호출</b><p>브라우저 직접 호출이 막히는 공공 API를 서버에서 호출</p></div>
+          <div><span>키 보호</span><b>API 키는 환경변수에만</b><p>키 2종이 브라우저에 노출되지 않음</p></div>
+          <div><span>응답 정리</span><b>화면엔 한 가지 형식</b><p>공통 모듈에서 정규화, GitHub push 시 자동 배포</p></div>
+        </div>
+      </section>
+
+      <p class="group-label">내 작업</p>
+
+      <section class="sec" id="ai">
+        <div class="sh"><div class="no"><b>03</b></div><h2>사용자 유형별 AI 처리 방법 추천</h2></div>
+        <div class="cols">
+          <div class="col">
+            <div class="blk"><h3>처리 흐름</h3>
+              <div class="dg v">
+                <div class="nd"><b>입력 맥락</b><small>사용자 유형 · 민원 · 민원실 거리 · 시각</small></div><div class="ar"></div>
+                <div class="nd hi"><b>Claude 호출 (서버)</b><small>7개 항목 형식 확인 · 틀리면 오류(502)</small></div><div class="ar"></div>
+                <div class="nd"><b>화면에 바로 배치</b><small>추천 제목 · 이유 · 구비서류 · 예상 시간 · 팁 · 온라인/무인기 비교</small></div>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <figure><div class="frame"><img src="../img/baro/ai.jpg" alt="노약자 · 주민등록등본 선택 시 AI 추천 결과" width="430" height="750" loading="lazy" style="max-width:260px;margin:auto"></div>
+              <figcaption><b>노약자 · 주민등록등본 선택 시.</b></figcaption></figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="normalize">
+        <div class="sh"><div class="no"><b>04</b></div><h2>공공 API 응답 정규화와 트러블슈팅</h2></div>
+        <figure><div class="frame scroll" style="background:#fff"><img src="../img/baro/normalize.png" alt="공공 API 원본 응답이 공통 모듈의 5단계(성공 코드, 목록 추출, 필드 매핑, 형식 변환, 지역 필터)를 거쳐 화면 데이터로 바뀌는 과정" width="2600" height="952" loading="lazy"></div>
+          <figcaption><b>서버 정규화 (2026.10 고도화).</b> 응답 구조 · 성공 코드 · 필드 이름 · 지역 코드를 공통 모듈 하나에서 맞춰, 응답 형식이 바뀌어도 화면 코드는 그대로입니다.</figcaption></figure>
+        <div class="tbl"><table>
+          <thead><tr><th>문제</th><th>원인</th><th>해결</th></tr></thead>
+          <tbody>
+            <tr><td><b>실시간 대기가 빈 화면</b></td><td>첫 응답이 비면 카드 없이 숫자만 갱신 시도</td><td>‘카드 표시 여부’ 상태를 분리해 없으면 다시 그림</td></tr>
+            <tr><td><b>먼 민원실에 도보 134분 추천</b></td><td>버스 데이터가 있는 지역에서만 대중교통 후보 생성</td><td>0.6km 기준으로 도보 / 대중교통 추천 + 지도 길찾기</td></tr>
+            <tr><td><b>강원 · 전북 지역 필터 불일치</b></td><td>특별자치도 출범으로 시도 코드 변경 (42→51, 45→52)</td><td>주소 → 시도 코드 변환표 갱신</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section class="sec" id="speed">
+        <div class="sh"><div class="no"><b>05</b></div><h2>API 응답 속도 개선<small>2026.10 고도화</small></h2></div>
+        <div class="cols">
+          <div class="col">
+            <figure><div class="frame" style="background:#fff"><img src="../img/baro/speed.png" alt="개선 전후 응답 시간 비교 막대그래프" width="2000" height="792" loading="lazy"></div>
+              <figcaption><b>반복 요청 응답 시간 (2026.10 고도화).</b> 배포 사이트 실측 중앙값</figcaption></figure>
+          </div>
+          <div class="col">
+            <div class="tbl"><table>
+              <thead><tr><th>API</th><th>고도화 전</th><th>2026.10 고도화 후</th><th></th></tr></thead>
+              <tbody>
+                <tr><td>버스 노선</td><td class="num">3.18초</td><td class="num hl-a">0.30초</td><td class="num hl-a">−90%</td></tr>
+                <tr><td>실시간 대기 · 가까운 서버 저장분</td><td class="num">0.43초</td><td class="num hl-a">0.02초</td><td class="num hl-a">−95%</td></tr>
+                <tr><td>민원실</td><td class="num">0.42초</td><td class="num hl-a">0.22초</td><td class="num hl-a">−48%</td></tr>
+                <tr><td>이동지원센터</td><td class="num">1.07초</td><td class="num hl-a">0.84초</td><td class="num hl-a">−21%</td></tr>
+              </tbody>
+            </table></div>
+            <p class="note">병렬 요청 · 서버 캐시 · CDN(전송망) 캐시 도입. 실시간 대기는 가까운 서버(CDN)에 저장된 응답을 받은 경우입니다.</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <footer><a href="../index.html#projects">← 포트폴리오로 돌아가기</a><span>장하은 · jhe290609@gmail.com · github.com/haeun910</span></footer>
+</div>
+<script>
+try{history.scrollRestoration='manual'}catch(e){}
+function toTop(){if(!location.hash||location.hash.length<2){window.scrollTo(0,0)}}
+toTop();window.addEventListener('load',toTop);window.addEventListener('pageshow',toTop);
+</script>
+<script>
+document.addEventListener('click',e=>{const ov=document.querySelector('.zoom-ov');if(ov){ov.remove();return}
+const img=e.target.closest('figure img');if(!img||e.target.closest('a'))return;
+const o=document.createElement('div');o.className='zoom-ov';const c=document.createElement('img');c.src=img.currentSrc||img.src;c.alt=img.alt;o.appendChild(c);document.body.appendChild(o)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelector('.zoom-ov')?.remove()});
+</script>
+</body>
+</html>

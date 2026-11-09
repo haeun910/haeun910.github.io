@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>장하다 1호 · 장하은 포트폴리오</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<meta name="description" content="반려견 분리불안 감지 · 완화 기기 장하다 1호">
+<link rel="stylesheet" href="../assets/project.css">
+</head>
+<body>
+<div class="page">
+  <div class="top">
+    <a href="../index.html#projects">← 장하은 포트폴리오</a>
+    <span>PROJECT 08 · 장하다 1호</span>
+  </div>
+
+  <header class="phead">
+    <div>
+      <p class="cap">1인 가구 반려견 분리불안 완화 AIoT 시스템</p>
+      <h1>장하다 1호</h1>
+      <p class="tagline">반려견 분리불안 감지 · 완화 기기</p>
+      <p class="hashes"><span>#엣지AI</span><span>#단계제어</span><span>#FastAPI</span><span>#RaspberryPi5</span></p>
+    </div>
+    <dl class="meta">
+      <dt>기간</dt><dd>2025.06 – 2025.07 · 이후 개인 고도화</dd>
+      <dt>수상</dt><dd><b class="hl-a">최우수상</b></dd>
+      <dt>인원</dt><dd>팀 3인</dd>
+      <dt>담당</dt><dd class="role">팀장 · 시스템 통합 · Pi 추론 · 상태 머신 · FastAPI 서버 · 대시보드</dd>
+      <dt>스택</dt><dd>Raspberry Pi 5 · YOLOv11n · OpenCV · Arduino Uno · FastAPI</dd>
+      <dt>링크</dt><dd class="links"><a href="https://github.com/haeun910/InventOn">↗ GitHub</a></dd>
+    </dl>
+  </header>
+
+  <div class="wrap">
+    <nav class="toc" aria-label="목차">
+      <h4>프로젝트</h4>
+      <ol>
+        <li><a href="#overview"><span>01</span>개요</a></li>
+        <li><a href="#system"><span>02</span>시스템 구조</a></li>
+      </ol>
+      <h4>내 작업</h4>
+      <ol class="mine">
+        <li><a href="#state"><span>03</span>상태 머신 제어</a></li>
+        <li><a href="#server"><span>04</span>서버와 대시보드</a></li>
+      </ol>
+    </nav>
+
+    <main class="content">
+
+      <section class="sec" id="overview">
+        <div class="sh"><div class="no"><b>01</b></div><h2>개요</h2></div>
+        <div class="cols">
+          <div class="col">
+            <figure><div class="frame"><img src="../img/inventon/detect-crop.png" alt="Pi 5 카메라 화면: 파란 상자는 AI가 찾은 반려견" width="720" height="302" loading="lazy"></div>
+              <figcaption><b>실제 작동 화면.</b> Pi 카메라 영상에서 반려견 행동을 1초마다 판별합니다.</figcaption></figure>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>문제</h3>
+              <ul class="b"><li>1인 가구 반려견이 혼자 있을 때 생기는 <b>불안 행동</b>을 보호자가 계속 지켜볼 수 없음</li></ul>
+            </div>
+            <div class="blk"><h3>해결</h3>
+              <ul class="b">
+                <li>Raspberry Pi 5가 <b>1초마다 행동을 추론</b>하고, 불안하면 LED · LCD · 스피커로 달래고 진정되면 간식으로 보상</li>
+                <li>불안이 시작될 때 사진 1장을 서버에 기록해 <b>보호자가 대시보드로 확인</b></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="system">
+        <div class="sh"><div class="no"><b>02</b></div><h2>카메라 → 엣지 AI → 하드웨어 → 웹</h2></div>
+        <figure><div class="frame scroll" style="background:#fff"><img src="../img/inventon/architecture.png" alt="장하다 1호 구조도: 카메라 → Raspberry Pi 5(행동 탐지 · 단계 제어 · 기록 전송) → Arduino 제어 보드와 FastAPI 기록 서버 → 보호자 웹 화면" width="2800" height="633" loading="lazy"></div>
+          <figcaption><b>전체 구조.</b> Pi가 판단하고, Arduino는 받은 상태 코드대로만 움직이며, 기록은 서버로 보냅니다.</figcaption></figure>
+        <div class="units">
+          <div><span>Raspberry Pi 5</span><b>판단</b><p>YOLOv11n 행동 탐지(신뢰도 0.5 이상) + 상태 머신</p></div>
+          <div><span>Arduino Uno</span><b>출력</b><p>USB 시리얼로 받은 ‘0’ · ‘1’ · ‘2’에 맞춰 LED · LCD · 스피커 · 서보모터 제어</p></div>
+          <div><span>FastAPI</span><b>기록</b><p>불안 시작 사진 · 라벨 · 신뢰도 · 시각 저장, 대시보드에 제공</p></div>
+        </div>
+      </section>
+
+      <p class="group-label">내 작업</p>
+
+      <section class="sec" id="state">
+        <div class="sh"><div class="no"><b>03</b></div><h2>정상 → 불안 → 보상 상태 머신</h2></div>
+        <figure><div class="frame scroll" style="background:#fff"><img src="../img/inventon/state.png" alt="상태도: 0 정상에서 불안 행동을 감지하면 1 불안(불빛 · 화면 · 소리), 불안 행동이 사라지면 5초 세기 시작, 불안 없이 5초가 지나면 2 보상(간식) 후 0으로 복귀" width="2852" height="528" loading="lazy"></div>
+          <figcaption><b>상태 전이.</b> 5초가 되기 전에 불안 행동이 다시 보이면 처음부터 다시 세고, 보상을 주지 않습니다.</figcaption></figure>
+        <div class="cols">
+          <div class="col">
+            <div class="blk"><h3>설계한 규칙</h3>
+              <ul class="b">
+                <li><b>진정됐을 때만 보상:</b> 불안이 멈춘 뒤 5초 동안 불안 행동이 보이지 않으면 간식을 줘서, AI가 한 순간 잘못 판단해도 간식이 나가지 않게 함</li>
+                <li><b>바뀔 때만 전송:</b> 상태가 바뀐 순간에만 숫자 한 글자를 보내 Arduino가 같은 동작을 반복하지 않음</li>
+                <li><b>사진은 한 장만:</b> 불안이 새로 시작될 때만 사진 1장을 기록해 같은 장면이 계속 쌓이지 않게 함</li>
+              </ul>
+            </div>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>1초 주기 처리 과정</h3>
+              <div class="dg v">
+                <div class="nd"><b>프레임 촬영</b><small>Pi Camera 2 · 640×480</small></div><div class="ar"></div>
+                <div class="nd hi"><b>행동 탐지</b><small>정상 + 불안 행동 3종 탐지 → 정상 · 불안으로 묶음</small></div><div class="ar"></div>
+                <div class="nd"><b>상태 갱신</b><small>타이머 확인 후 0 · 1 · 2 결정</small></div><div class="ar"></div>
+                <div class="nd"><b>출력 · 기록</b><small>Arduino로 상태 코드, 불안이 새로 시작될 때만 서버로 사진</small></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="server">
+        <div class="sh"><div class="no"><b>04</b></div><h2>FastAPI 서버와 보호자 대시보드</h2></div>
+        <figure style="max-width:580px"><div class="frame"><img src="../img/inventon/dash-dog.png" alt="보호자 대시보드 최근 기록: 반려견 사진 · 발 들기 · 신뢰도 68.7%" width="580" height="181" loading="lazy"></div>
+          <figcaption><b>보호자 대시보드 최근 기록.</b> 감지 사진 · 행동 · 확신도 · 시각을 5초마다 새로 불러옵니다.</figcaption></figure>
+        <div class="tbl"><table>
+          <thead><tr><th>주소</th><th>하는 일</th></tr></thead>
+          <tbody>
+            <tr><td><code>POST /upload</code></td><td>Pi가 보낸 사진을 저장하고 이벤트 기록</td></tr>
+            <tr><td><code>GET /events</code></td><td>최신순 이벤트 목록</td></tr>
+            <tr><td><code>GET /stats</code></td><td>저장된 기록 수 집계</td></tr>
+            <tr><td><code>GET /images</code></td><td>감지 사진 제공</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+    </main>
+  </div>
+
+  <footer><a href="../index.html#projects">← 포트폴리오로 돌아가기</a><span>장하은 · jhe290609@gmail.com · github.com/haeun910</span></footer>
+</div>
+<script>
+try{history.scrollRestoration='manual'}catch(e){}
+function toTop(){if(!location.hash||location.hash.length<2){window.scrollTo(0,0)}}
+toTop();window.addEventListener('load',toTop);window.addEventListener('pageshow',toTop);
+</script>
+<script>
+document.addEventListener('click',e=>{const ov=document.querySelector('.zoom-ov');if(ov){ov.remove();return}
+const img=e.target.closest('figure img');if(!img||e.target.closest('a'))return;
+const o=document.createElement('div');o.className='zoom-ov';const c=document.createElement('img');c.src=img.currentSrc||img.src;c.alt=img.alt;o.appendChild(c);document.body.appendChild(o)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelector('.zoom-ov')?.remove()});
+</script>
+</body>
+</html>

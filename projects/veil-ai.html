@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Veil AI · 장하은 포트폴리오</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<meta name="description" content="LLM에 보내기 전에 민감정보부터 가리는 실시간 AI 마스킹 플랫폼">
+<link rel="stylesheet" href="../assets/project.css">
+</head>
+<body>
+<div class="page">
+
+  <div class="top">
+    <a href="../index.html#projects">← 장하은 포트폴리오</a>
+    <span>PROJECT 01 · VEIL AI</span>
+  </div>
+
+  <header class="phead">
+    <div>
+      <p class="cap">기업 정보 유출 방지 · 실시간 AI 마스킹 플랫폼</p>
+      <h1>Veil AI</h1>
+      <p class="tagline">LLM에 보내기 전에 민감정보부터 가립니다</p>
+      <p class="hashes"><span>#NER파인튜닝</span><span>#데이터셋구축</span><span>#KLUE-RoBERTa</span><span>#LLM보안</span></p>
+    </div>
+    <dl class="meta">
+      <dt>기간</dt><dd>2026.03 – 2026.06 · 캡스톤디자인</dd>
+      <dt>인원</dt><dd>팀 4인</dd>
+      <dt>담당</dt><dd class="role">진행 총괄 · 데이터셋 구축 · 모델 파인튜닝 · 랜딩·로그인</dd>
+      <dt>스택</dt><dd>KLUE-RoBERTa · FastAPI · React · Supabase</dd>
+      <dt>링크</dt><dd class="links"><a href="https://veil-ai-platform.vercel.app">↗ 서비스</a><a href="https://github.com/haeun910/leak_prevention_platform_haeun">↗ GitHub</a></dd>
+    </dl>
+  </header>
+
+  <div class="wrap">
+    <nav class="toc" aria-label="목차">
+      <h4>프로젝트</h4>
+      <ol>
+        <li><a href="#overview"><span>01</span>개요</a></li>
+        <li><a href="#system"><span>02</span>전체 구조와 흐름</a></li>
+      </ol>
+      <h4>내 역할</h4>
+      <ol class="mine">
+        <li><a href="#dataset"><span>03</span>학습 데이터셋</a></li>
+        <li><a href="#model"><span>04</span>모델 비교와 선택</a></li>
+        <li><a href="#fixes"><span>05</span>테스트와 화면</a></li>
+      </ol>
+      <h4>정리</h4>
+      <ol>
+        <li><a href="#result"><span>06</span>결과</a></li>
+        <li><a href="veil-ai-detail.html"><span>+</span>기술 상세</a></li>
+      </ol>
+    </nav>
+
+    <main class="content">
+
+      <!-- 01 개요 -->
+      <section class="sec" id="overview">
+        <div class="sh"><div class="no"><b>01</b></div><h2>개요</h2></div>
+        <div class="cols">
+          <div class="col">
+            <figure><div class="frame" style="background:#fff"><img src="../img/veil/preview.jpg" alt="채팅 입력창 위에 HIGH 위험도와 감지된 항목(전화번호, 계좌번호, 기관명)이 표시된 마스킹 미리보기" width="1200" height="500" loading="lazy"></div>
+              <figcaption><b>① 보내기 전 미리보기.</b> 입력하는 동안 감지된 항목과 위험도를 보여 주고, 전송 시 자동으로 가립니다.</figcaption></figure>
+            <figure><div class="frame" style="background:#fff;padding:10px"><img src="../img/veil/chat-masked.png" alt="기관명, 계좌번호, 전화번호 3개 항목이 마스킹된 채팅 말풍선" width="777" height="240" loading="lazy"></div>
+              <figcaption><b>② 전송 후.</b> 은행명 · 계좌번호 · 전화번호가 가려진 문장만 LLM으로 전송됩니다.</figcaption></figure>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>문제</h3>
+              <ul class="b">
+                <li>생성형 AI를 업무에 쓰면서 <b>고객 정보 · 계좌번호 · 사내 문서명</b>을 프롬프트에 그대로 붙여 넣는 일이 생김</li>
+                <li>입력한 문장은 <b>외부 LLM 서버로 그대로 전송</b>되고, 회사는 무엇이 나갔는지 알 수 없음</li>
+              </ul>
+            </div>
+            <div class="blk"><h3>해결</h3>
+              <ul class="b">
+                <li>LLM 사용을 막는 대신 <b>보내기 직전에 민감정보를 가리는 계층</b>을 만듦</li>
+                <li>형식이 정해진 정보는 규칙으로, 이름 · 문서명처럼 문맥이 필요한 정보는 <b>직접 학습한 NER 모델</b>로 탐지</li>
+              </ul>
+            </div>
+            <div class="blk"><h3>내 역할</h3>
+              <div class="rows">
+                <div><span class="k">진행 총괄</span><span class="v">주제 선정, 일정 · 역할 관리, 중간 발표</span></div>
+                <div><span class="k">데이터 · 모델</span><span class="v">NER 학습 데이터셋 49,576문장 구축, 모델 4종 파인튜닝 · 비교</span></div>
+                <div><span class="k">화면</span><span class="v">랜딩 · 로그인 페이지 구현</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 02 구조와 흐름 -->
+      <section class="sec" id="system">
+        <div class="sh"><div class="no"><b>02</b></div><h2>형식은 규칙으로, 문맥은 모델로</h2></div>
+        <figure><div class="frame scroll" style="background:#fff"><img src="../img/veil/architecture.png" alt="Veil AI 전체 구조도: 웹 화면, FastAPI 서버의 정규식 · NER · 위험도 마스킹 단계, DB, 그리고 외부 LLM 앞단 점선을 지나 가린 문장만 외부 LLM으로 나간다" width="3120" height="1138" loading="lazy"></div>
+          <figcaption><b>전체 구조.</b> 점선 = 외부 LLM 앞단. 마스킹을 거친 문장만 외부 LLM으로 나가고, DB에도 가린 문장만 저장됩니다.</figcaption></figure>
+        <div class="cols">
+          <div class="col">
+            <div class="blk"><h3>메시지 한 건이 처리되는 과정</h3>
+              <div class="dg v">
+                <div class="nd"><b>입력 · 미리보기</b><small>직원이 문장을 입력하면 가려질 항목과 위험도를 먼저 보여 줌</small></div><div class="ar"></div>
+                <div class="nd"><b>1차 정규식</b><small>전화 · 계좌 · 주민번호처럼 형식이 정해진 정보</small></div><div class="ar"></div>
+                <div class="nd hi"><b>2차 NER 모델</b><small>이름 · 기관명 · 문서명 · 프로젝트명처럼 문맥이 필요한 정보</small></div><div class="ar"></div>
+                <div class="nd"><b>3차 위험도 판정</b><small>탐지 결과를 점수로 합산해 high · medium · low</small></div><div class="ar"></div>
+                <div class="nd"><b>LLM 전송 · 저장</b><small>가려진 문장만 LLM으로, DB에도 가려진 문장과 탐지 기록만</small></div>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="example">
+              <div><span class="k">입력</span><p>환불 계좌 <b>국민은행</b> <b>123456-01-234567</b>, 연락처 <b>010-2345-6789</b>로 안내 메일 써줘</p></div>
+              <div><span class="k">출력</span><p>환불 계좌 <span class="hl-a">[기관명]</span> <span class="hl-a">[계좌번호]</span>, 연락처 <span class="hl-a">[전화번호]</span>로 안내 메일 써줘</p></div>
+              <div><span class="k">판정</span><p>계좌번호 10 + 전화번호 5 + 기관명 1 + 여러 유형 5 = 21점 → <b>high</b></p></div>
+            </div>
+            <div class="blk"><h3>설계 포인트</h3>
+              <ul class="b">
+                <li><b>두 가지 탐지를 섞은 이유:</b> 번호류는 규칙이 빠르고 정확하고, 이름 · 문서명은 문맥을 봐야 함. 정규식이 가린 문장을 모델에 넘겨 같은 정보를 두 번 잡지 않음</li>
+                <li><b>단계별 독립 구조:</b> 정규식 · NER · 위험도가 각자 독립돼 있어 NER 모델을 불러오지 못해도 정규식 결과로 서비스가 계속 동작</li>
+                <li><b>LLM 교체 가능:</b> GPT-4o · Claude · Gemini를 같은 방식으로 연결해 골라 쓸 수 있음</li>
+                <li><b>가린 문장만 전달 · 저장:</b> 외부 LLM으로 나가는 문장과 DB에 남는 문장 모두 마스킹을 거친 것</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <p class="sub-label">시스템 이해 · 학습한 모델이 서비스 안에서 쓰이는 방식</p>
+        <div class="cols">
+          <div class="col">
+            <div class="blk"><h3>서비스 안에서 모델이 가리는 방식</h3>
+              <p class="note">모델은 단어 조각마다 B(시작) · I(이어짐) · O(해당 없음) 태그를 붙이고, 같은 종류의 B → I를 하나로 묶어 가립니다.</p>
+              <div class="toks">
+                <div class="tok e"><span>김민지</span><i>B-PERSON</i></div>
+                <div class="tok"><span>팀장에게</span><i>O</i></div>
+                <div class="tok e"><span>알파</span><i>B-PROJECT</i></div>
+                <div class="tok e"><span>프로젝트</span><i>I-PROJECT</i></div>
+                <div class="tok"><span>보고서</span><i>O</i></div>
+                <div class="tok"><span>전달해줘</span><i>O</i></div>
+              </div>
+              <p class="res"><span class="mk">[이름]</span> 팀장에게 <span class="mk">[프로젝트명]</span> 보고서 전달해줘</p>
+            </div>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>모델 불러오기</h3>
+              <div class="dg v">
+                <div class="nd"><b>서버 시작 시 미리 로드</b><small>첫 요청이 기다리지 않게</small></div><div class="ar"></div>
+                <div class="nd"><b>모델 검증</b><small>가중치 누락이나 레이블 불일치면 로드 거부</small></div><div class="ar"></div>
+                <div class="nd hi"><b>한 번만 로드해 공유</b><small>동시 요청에도 모델은 하나만</small></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <p class="group-label">내 역할</p>
+
+      <!-- 03 데이터셋 -->
+      <section class="sec" id="dataset">
+        <div class="sh"><div class="no"><b>03</b></div><h2>NER 학습 데이터셋 설계 · 구축</h2></div>
+        <div class="cols">
+          <div class="col">
+            <div class="blk"><h3>문제</h3>
+              <ul class="b"><li>공개 NER 데이터에는 인명 · 기관 · 주소는 있지만 <b>사내 문서명 · 프로젝트명 · 비밀번호</b>처럼 기업에서 새는 정보는 라벨 자체가 없음</li></ul>
+            </div>
+            <div class="blk"><h3>해결 방법</h3>
+              <ul class="b">
+                <li><b>있는 라벨은 공개 데이터로:</b> KLUE-NER의 자연스러운 실제 문장 사용</li>
+                <li><b>없는 라벨은 합성:</b> 문서명 · 프로젝트명 · 비밀번호는 규칙 기반으로 업무 문장을 합성</li>
+                <li><b>과잉 탐지 방지:</b> 민감정보가 없는 문장과, 형태는 비슷하지만 민감정보가 아닌 문장(hard negative)을 함께 넣음</li>
+              </ul>
+            </div>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>데이터 구성</h3>
+              <div class="tbl"><table>
+                <thead><tr><th>유형</th><th>문장 수</th><th>넣은 이유</th></tr></thead>
+                <tbody>
+                  <tr><td>단일 엔티티 + NONE</td><td class="num">39,624</td><td>라벨별 기본 학습, 과잉 탐지 확인</td></tr>
+                  <tr><td>멀티 엔티티</td><td class="num">4,952</td><td>한 문장에 민감정보가 여러 개</td></tr>
+                  <tr><td>다중 문장</td><td class="num">5,000</td><td>두 문장 이상 이어지는 실제 업무 입력</td></tr>
+                  <tr class="total"><td>합계</td><td class="num">49,576</td><td></td></tr>
+                </tbody>
+              </table></div>
+              <p class="note">라벨별 출처(공개 · 합성)를 기록해 두고, 라벨마다 성능이 다를 때 해석하는 근거로 사용</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 04 모델 -->
+      <section class="sec" id="model">
+        <div class="sh"><div class="no"><b>04</b></div><h2>모델 4종 비교와 선택</h2></div>
+        <div class="cols">
+          <div class="col">
+            <div class="blk"><h3>테스트셋 성능 비교</h3>
+              <div class="tbl"><table>
+                <thead><tr><th>모델</th><th>정밀도</th><th>재현율</th><th>F1</th></tr></thead>
+                <tbody>
+                  <tr><td><b class="hl-a">KLUE-RoBERTa</b></td><td class="num hl-a">95.59</td><td class="num hl-a">96.70</td><td class="num hl-a">96.14</td></tr>
+                  <tr><td>KoELECTRA-base</td><td class="num">95.21</td><td class="num">96.08</td><td class="num">95.64</td></tr>
+                  <tr><td>KoELECTRA-NER</td><td class="num">94.58</td><td class="num">95.70</td><td class="num">95.14</td></tr>
+                  <tr><td>KcBERT</td><td class="num">87.27</td><td class="num">91.04</td><td class="num">89.12</td></tr>
+                </tbody>
+              </table></div>
+              <p class="note">단위 %. 평가 기준: 같은 출처 · 생성 규칙으로 만든 학습 미사용 문장 4,996개. 8 에폭 모델 기준, KLUE-RoBERTa가 세 지표 모두 1위</p>
+            </div>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>비교 방법</h3>
+              <ul class="b">
+                <li><b>같은 조건:</b> 같은 데이터 · 같은 분할로 한국어 사전학습 모델 4종을 각각 파인튜닝</li>
+                <li><b>공정한 평가:</b> 검증 점수가 가장 높은 8 에폭(반복 횟수) 모델을, 같은 출처 · 생성 규칙으로 만든 학습 미사용 문장 4,996개로 비교</li>
+                <li><b>결정:</b> F1이 가장 높은 <b>KLUE-RoBERTa(96.14%)</b>를 서비스에 적용</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 05 테스트와 화면 -->
+      <section class="sec" id="fixes">
+        <div class="sh"><div class="no"><b>05</b></div><h2>직접 써 보며 고친 문제와 랜딩 · 로그인</h2></div>
+        <div class="tbl"><table>
+          <thead><tr><th>발견한 문제</th><th>수정 내용</th></tr></thead>
+          <tbody>
+            <tr><td><b>전화번호 · 계좌번호 오탐</b></td><td>‘연락처 · 계좌’ 같은 앞뒤 단어와 숫자 경계 조건을 추가하고, 날짜 · 버전 번호는 제외</td></tr>
+            <tr><td><b>직책이 이름으로 가려짐</b></td><td>‘팀장’ 같은 직책 단어는 이름 결과에서 제외</td></tr>
+            <tr><td><b>원문이 브라우저에 남음</b></td><td>대화 저장을 서버 DB로 옮기고, 가려진 문장만 저장하도록 변경</td></tr>
+            <tr><td><b>로그인하면 무조건 대시보드</b></td><td>직원은 채팅, 관리자는 대시보드로 역할에 따라 이동</td></tr>
+          </tbody>
+        </table></div>
+        <p class="note">실제 업무 문장으로 재현 → 수정 → 같은 문장으로 재확인. 정규식 회귀 테스트 32건 모두 통과</p>
+        <div class="cols wide-left">
+          <div class="col">
+            <figure><div class="frame"><img src="../img/veil/landing.jpg" alt="Veil AI 랜딩 페이지 첫 화면" width="1400" height="875" loading="lazy"></div>
+              <figcaption><b>직접 만든 랜딩 페이지.</b> 문장 입력 → 민감정보 감지 → 라벨 치환 과정이 반복 재생됩니다.</figcaption></figure>
+          </div>
+          <div class="col">
+            <figure><div class="frame"><img src="../img/veil/login.png" alt="로그인 카드" width="600" height="698" loading="lazy"></div>
+              <figcaption><b>로그인.</b> 실패하면 서버 오류 문구 표시, 성공하면 역할별 첫 화면으로 이동</figcaption></figure>
+          </div>
+        </div>
+      </section>
+
+      <!-- 06 결과 -->
+      <section class="sec" id="result">
+        <div class="sh"><div class="no"><b>06</b></div><h2>결과</h2></div>
+        <div class="cols">
+          <div class="col">
+            <div class="blk"><h3>결과</h3>
+              <ul class="b">
+                <li>규칙과 모델을 섞은 3단계 파이프라인으로 <b>모든 요청 0.1초 이내 실시간 마스킹</b> (배포 서버 실측 24건)</li>
+                <li>직접 구축한 데이터셋으로 학습한 모델이 <b>테스트셋 F1 96.14%</b></li>
+                <li>Vercel · Hugging Face Spaces · Supabase로 <b>실제 접속 가능한 서비스</b> 배포</li>
+              </ul>
+            </div>
+          </div>
+          <div class="col">
+            <figure><div class="frame"><img src="../img/veil/dashboard.jpg" alt="관리자 대시보드 화면" width="1400" height="654" loading="lazy"></div>
+              <figcaption><b>관리자 대시보드.</b> 유형 · 부서별 마스킹 통계와 보안 로그를 봅니다.</figcaption></figure>
+          </div>
+        </div>
+        <a class="more-link" href="veil-ai-detail.html"><b>기술 상세 보기</b><span>파일 구성, 정규식 · 위험도 규칙, API, 배포까지 전체 내용 →</span></a>
+      </section>
+
+    </main>
+  </div>
+
+  <footer><a href="../index.html#projects">← 포트폴리오로 돌아가기</a><span>장하은 · jhe290609@gmail.com · github.com/haeun910</span></footer>
+</div>
+<script>
+try{history.scrollRestoration='manual'}catch(e){}
+function toTop(){if(!location.hash||location.hash.length<2){window.scrollTo(0,0)}}
+toTop();window.addEventListener('load',toTop);window.addEventListener('pageshow',toTop);
+</script>
+<script>
+document.addEventListener('click',e=>{const ov=document.querySelector('.zoom-ov');if(ov){ov.remove();return}
+const img=e.target.closest('figure img');if(!img||e.target.closest('a'))return;
+const o=document.createElement('div');o.className='zoom-ov';const c=document.createElement('img');c.src=img.currentSrc||img.src;c.alt=img.alt;o.appendChild(c);document.body.appendChild(o)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelector('.zoom-ov')?.remove()});
+</script>
+</body>
+</html>

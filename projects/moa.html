@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Moa · 장하은 포트폴리오</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<meta name="description" content="할 일 · 일정 · 메모를 한곳에 모으는 플래너 웹앱 (PWA)">
+<link rel="stylesheet" href="../assets/project.css">
+</head>
+<body>
+<div class="page">
+  <div class="top">
+    <a href="../index.html#projects">← 장하은 포트폴리오</a>
+    <span>PROJECT 05 · MOA</span>
+  </div>
+
+  <header class="phead">
+    <div>
+      <p class="cap">할 일 · 일정 · 메모를 한곳에 모으는 플래너 웹앱 (PWA)</p>
+      <h1>모아 (Moa)</h1>
+      <p class="tagline">날짜 없는 할 일은 저장소에, 할 날이 되면 오늘로</p>
+      <p class="hashes"><span>#React</span><span>#TypeScript</span><span>#Supabase</span><span>#PWA</span><span>#실시간동기화</span></p>
+    </div>
+    <dl class="meta">
+      <dt>기간</dt><dd>2026.06 – 2026.09 · 개인 프로젝트 (1인 개발)</dd>
+      <dt>담당</dt><dd class="role">기획 · 디자인 · 프론트엔드 · DB 설계 · 배포</dd>
+      <dt>스택</dt><dd>React 19 · TypeScript · Vite · Tailwind · Supabase · Vercel</dd>
+      <dt>링크</dt><dd class="links"><a href="https://moa-planner.vercel.app">↗ 서비스</a><a href="https://github.com/haeun910/moa">↗ GitHub</a></dd>
+    </dl>
+  </header>
+
+  <div class="wrap">
+    <nav class="toc" aria-label="목차">
+      <h4>프로젝트</h4>
+      <ol>
+        <li><a href="#overview"><span>01</span>개요</a></li>
+        <li><a href="#system"><span>02</span>시스템 구조</a></li>
+      </ol>
+      <h4>내 작업</h4>
+      <ol class="mine">
+        <li><a href="#migration"><span>03</span>할 일 구조 전환</a></li>
+        <li><a href="#fixes"><span>04</span>트러블슈팅</a></li>
+      </ol>
+    </nav>
+
+    <main class="content">
+
+      <section class="sec" id="overview">
+        <div class="sh"><div class="no"><b>01</b></div><h2>개요</h2></div>
+        <figure><div class="frame"><img src="../img/moa/pc-home.jpg" alt="PC 홈 화면: 오늘 할 일, 월간 캘린더, 목표" width="1400" height="875" loading="lazy"></div>
+          <figcaption><b>홈 (PC).</b> 오늘 할 일 · 캘린더 · 월간 목표를 한 화면에</figcaption></figure>
+        <div class="cols" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,.42fr)">
+          <figure><div class="frame"><img src="../img/moa/pc-all.jpg" alt="PC 저장소 화면" width="1400" height="875" loading="lazy"></div><figcaption><b>저장소.</b> 날짜 없는 할 일 보관</figcaption></figure>
+          <figure><div class="frame"><img src="../img/moa/pc-report.jpg" alt="PC 성취 리포트 화면" width="1400" height="875" loading="lazy"></div><figcaption><b>성취 리포트.</b> 달성률 확인</figcaption></figure>
+          <figure><div class="frame"><img src="../img/moa/mo-home.jpg" alt="모바일 홈 화면" width="430" height="932" loading="lazy"></div><figcaption><b>모바일</b></figcaption></figure>
+        </div>
+        <div class="cols">
+          <div class="col">
+            <div class="blk"><h3>문제</h3>
+              <ul class="b"><li>날짜 없는 “언젠가 할 일”과 날짜가 정해진 일정을 <b>따로 관리</b>하다 보니 놓치는 일이 생김</li></ul>
+            </div>
+            <div class="blk"><h3>해결</h3>
+              <ul class="b"><li>할 일을 <b>저장소</b>에 쌓아 두고, 할 날이 되면 <b>“오늘로” · 날짜 지정</b>으로 일정에 배치</li><li>모든 기기에서 <b>즉시 동기화</b></li></ul>
+            </div>
+          </div>
+          <div class="col">
+            <dl class="spec">
+              <dt>기능</dt><dd>월간 · 주간 캘린더, 월간 목표, D-Day, 메모, 성취 리포트, 다크 모드</dd>
+              <dt>설치</dt><dd>PWA로 홈 화면 설치, 새 버전 알림</dd>
+              <dt>결과</dt><dd>체크리스트 묶음을 카테고리 · 하위카테고리 · 할 일 3단 구조로 전환, 기존 데이터는 SQL 1회로 자동 변환</dd>
+            </dl>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="system">
+        <div class="sh"><div class="no"><b>02</b></div><h2>로그인 · DB · 변경 전달은 Supabase로</h2></div>
+        <figure><div class="frame scroll" style="background:#fff"><img src="../img/moa/architecture.png" alt="Moa 구조도: 사용자 기기(서비스 워커 · 설치 안내), React 웹 앱, Supabase(로그인 · PostgreSQL + RLS · Realtime · DB 트리거)" width="2400" height="461" loading="lazy"></div>
+          <figcaption><b>전체 구조.</b> 직접 운영하는 백엔드 서버 대신 Supabase가 로그인 · 저장 · 변경 전달을 맡고, 화면 파일은 Vercel에 배포합니다.</figcaption></figure>
+        <div class="units">
+          <div><span>RLS</span><b>DB 단계 데이터 보호</b><p>본인 user_id 행만 읽기 · 쓰기, 공지 작성은 관리자만</p></div>
+          <div><span>Realtime</span><b>기기 간 동기화</b><p>할 일 · 카테고리 · 하위카테고리 · 메모 · 공지 변경을 즉시 반영</p></div>
+          <div><span>낙관적 업데이트</span><b>즉시 반응하는 화면</b><p>화면을 먼저 갱신하고 DB에 저장</p></div>
+        </div>
+      </section>
+
+      <p class="group-label">내 작업</p>
+
+      <section class="sec" id="migration">
+        <div class="sh"><div class="no"><b>03</b></div><h2>할 일 구조 전환 (v2.0)</h2></div>
+        <div class="cols">
+          <div class="col">
+            <div class="example">
+              <div><span class="k">이전</span><p>할 일 “토익” (10/31)<br>　☐ 단어 50개　☐ LC 1회 ← 하위 항목<br><span class="note">하위 항목은 날짜 · 마감일 · 메모를 가질 수 없고, 나눠 옮기면 같은 제목 할 일이 흩어짐</span></p></div>
+              <div><span class="k">변경 후</span><p>카테고리 “공부” › 하위카테고리 “토익”<br>　☐ 단어 50개 (10/31, 마감 11/2)　☐ LC 1회 (11/1)<br><span class="note">모든 할 일이 날짜 · 마감일 · 메모를 따로 가짐</span></p></div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>기존 데이터를 SQL 1회로 자동 변환</h3>
+              <div class="dg v">
+                <div class="nd"><b>① 묶음 찾기</b><small>하위 항목이 있는 할 일 = 묶음으로 쓰던 항목</small></div><div class="ar"></div>
+                <div class="nd"><b>② 하위카테고리로</b><small>같은 제목 묶음은 하나로 합침</small></div><div class="ar"></div>
+                <div class="nd hi"><b>③ 할 일로 승격</b><small>하위 항목 → 할 일, 날짜 · 마감 · 시간 상속</small></div><div class="ar"></div>
+                <div class="nd"><b>④ 정리</b><small>원래 묶음 삭제, 이전 테이블은 보존</small></div>
+              </div>
+              <p class="note">전체를 한 트랜잭션으로 실행해 중간에 실패하면 전부 취소, 다시 실행해도 안전하게 작성</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="fixes">
+        <div class="sh"><div class="no"><b>04</b></div><h2>증상과 실제 원인이 달랐던 문제</h2></div>
+        <div class="tbl"><table>
+          <thead><tr><th>문제</th><th>실제 원인</th><th>해결</th><th>결과</th></tr></thead>
+          <tbody>
+            <tr><td><b>사용 중 화면이 홈으로 튕김</b></td><td>로그인 유지 정보가 자동 갱신될 때 앱이 새 로그인으로 인식 → 데이터를 다시 불러오고 시작 화면으로 이동</td><td>사용자가 실제로 바뀔 때만 다시 불러오고, 시작 화면 이동은 처음 한 번만</td><td>쓰던 화면 유지, 갱신 때마다 하던 불필요한 전체 재조회 제거</td></tr>
+            <tr><td><b>새로 추가한 할 일이 목록에서 사라짐</b></td><td>드래그 순서용으로 목록을 따로 복사해 둠 → 이후 추가 · 변경은 원본에만 반영되고 화면은 옛 복사본 표시</td><td>복사본을 없애고 앱 전체가 함께 쓰는 원본 데이터를 바로 사용</td><td>원인 하나로 두 증상 해결 (저장소 변경이 홈에 안 보이던 문제 포함)</td></tr>
+            <tr><td><b>설치한 앱(태블릿)에 새 버전이 안 뜸</b></td><td>홈 화면에 설치한 앱은 다시 열어도 새로고침 없이 이어서 실행 → 새 버전을 확인할 기회가 없음</td><td>1시간마다, 그리고 앱으로 돌아올 때 새 버전을 확인하고, 강제 새로고침 대신 “새 버전” 안내</td><td>배포 후 설치한 기기에도 새 버전 반영, 새로고침 시점은 사용자가 선택</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+    </main>
+  </div>
+
+  <footer><a href="../index.html#projects">← 포트폴리오로 돌아가기</a><span>장하은 · jhe290609@gmail.com · github.com/haeun910</span></footer>
+</div>
+<script>
+try{history.scrollRestoration='manual'}catch(e){}
+function toTop(){if(!location.hash||location.hash.length<2){window.scrollTo(0,0)}}
+toTop();window.addEventListener('load',toTop);window.addEventListener('pageshow',toTop);
+</script>
+<script>
+document.addEventListener('click',e=>{const ov=document.querySelector('.zoom-ov');if(ov){ov.remove();return}
+const img=e.target.closest('figure img');if(!img||e.target.closest('a'))return;
+const o=document.createElement('div');o.className='zoom-ov';const c=document.createElement('img');c.src=img.currentSrc||img.src;c.alt=img.alt;o.appendChild(c);document.body.appendChild(o)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelector('.zoom-ov')?.remove()});
+</script>
+</body>
+</html>
