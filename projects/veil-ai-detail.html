@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Veil AI · 장하은 포트폴리오</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<meta name="description" content="Veil AI 기술 상세: 마스킹 파이프라인, 데이터셋, 모델, 배포">
+<link rel="stylesheet" href="../assets/project.css">
+</head>
+<body>
+<div class="page">
+
+  <div class="top">
+    <a href="veil-ai.html">← 프로젝트 요약으로</a>
+    <span>PROJECT 01 · VEIL AI · 기술 상세</span>
+  </div>
+
+  <header class="phead">
+    <div>
+      <p class="cap">기업 정보 유출 방지 · 실시간 AI 마스킹 플랫폼</p>
+      <h1>Veil AI</h1>
+      <p class="tagline">LLM에 보내기 전에 민감정보부터 가립니다</p>
+      <p class="hashes"><span>#NER파인튜닝</span><span>#데이터셋구축</span><span>#KLUE-RoBERTa</span><span>#LLM보안</span></p>
+    </div>
+    <dl class="meta">
+      <dt>기간</dt><dd>2026.03 – 2026.06 · 캡스톤디자인</dd>
+      <dt>인원</dt><dd>팀 4인</dd>
+      <dt>담당</dt><dd class="role">진행 총괄 · 데이터셋 구축 · 모델 파인튜닝 · 랜딩·로그인</dd>
+      <dt>스택</dt><dd>KLUE-RoBERTa · FastAPI · React · Supabase</dd>
+      <dt>링크</dt><dd class="links"><a href="https://veil-ai-platform.vercel.app">↗ 서비스</a><a href="https://github.com/haeun910/leak_prevention_platform_haeun">↗ GitHub</a></dd>
+    </dl>
+  </header>
+
+  <div class="wrap">
+    <nav class="toc" aria-label="목차">
+      <h4>프로젝트</h4>
+      <ol>
+        <li><a href="#overview"><span>01</span>개요</a></li>
+        <li><a href="#structure"><span>02</span>시스템 구조</a></li>
+        <li><a href="#files"><span>03</span>파일 구성</a></li>
+      </ol>
+      <h4>내 작업</h4>
+      <ol class="mine">
+        <li><a href="#dataset"><span>04</span>학습 데이터셋</a></li>
+        <li><a href="#finetune"><span>05</span>파인튜닝과 비교</a></li>
+        <li><a href="#fixes"><span>06</span>직접 고친 문제</a></li>
+        <li><a href="#landing"><span>07</span>랜딩·로그인</a></li>
+      </ol>
+      <h4>시스템 전체</h4>
+      <ol>
+        <li><a href="#flow"><span>08</span>요청 처리 흐름</a></li>
+        <li><a href="#ner"><span>09</span>NER 추론</a></li>
+        <li><a href="#regex"><span>10</span>정규식 레이어</a></li>
+        <li><a href="#risk"><span>11</span>위험도·예외 키워드</a></li>
+        <li><a href="#api"><span>12</span>API와 데이터</a></li>
+        <li><a href="#screens"><span>13</span>채팅·관리자 화면</a></li>
+        <li><a href="#deploy"><span>14</span>배포</a></li>
+      </ol>
+      <h4>정리</h4>
+      <ol>
+        <li><a href="#result"><span>15</span>결과</a></li>
+      </ol>
+    </nav>
+
+    <main class="content">
+
+      <!-- 01 개요 -->
+      <section class="sec" id="overview">
+        <div class="sh"><div class="no"><b>01</b></div><h2>개요</h2></div>
+        <div class="cols">
+          <div class="col">
+            <figure><div class="frame" style="background:#fff"><img src="../img/veil/preview.jpg" alt="채팅 입력창 위에 HIGH 위험도와 감지된 항목(전화번호, 계좌번호, 기관명)이 표시된 마스킹 미리보기" width="1200" height="500" loading="lazy"></div>
+              <figcaption><b>① 보내기 전 미리보기.</b> 입력하는 동안 감지된 항목과 위험도를 바로 보여 주고, 전송 시 자동으로 마스킹합니다.</figcaption></figure>
+            <figure><div class="frame" style="background:#fff;padding:10px"><img src="../img/veil/chat-masked.png" alt="기관명, 계좌번호, 전화번호 3개 항목이 마스킹된 채팅 말풍선" width="777" height="240" loading="lazy"></div>
+              <figcaption><b>② 전송 후 채팅 화면.</b> 은행명(기관명)·계좌번호·전화번호 3개 항목이 가려진 문장만 LLM으로 전송됩니다.</figcaption></figure>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>문제</h3>
+              <ul class="b">
+                <li>생성형 AI를 업무에 쓰면서 직원이 <b>고객 정보·계좌번호·사내 문서명</b>을 프롬프트에 그대로 붙여 넣는 일이 생김</li>
+                <li>입력한 문장은 그대로 <b>외부 LLM 서버로 전송</b>되고, 회사는 무엇이 나갔는지 알 수 없음</li>
+                <li>LLM 사용을 막기보다 <b>보내기 직전에 걸러 주는 계층</b>이 필요하다고 판단</li>
+              </ul>
+            </div>
+            <div class="blk"><h3>주요 기능</h3>
+              <div class="feats">
+                <div><span>01</span><b>3단계 마스킹</b><p>정규식 → NER 모델 → 위험도 판정</p></div>
+                <div><span>02</span><b>마스킹 미리보기</b><p>보내기 전 가려진 문장과 탐지 항목 표시</p></div>
+                <div><span>03</span><b>LLM 선택</b><p>GPT-4o · Claude · Gemini 중 선택</p></div>
+                <div><span>04</span><b>관리자 대시보드</b><p>유형·부서·사용자별 통계, 보안 로그</p></div>
+                <div><span>05</span><b>예외 키워드</b><p>직원 요청 → 관리자 승인 시 마스킹 제외</p></div>
+                <div><span>06</span><b>원문 미저장</b><p>DB에는 마스킹된 대화와 탐지 기록만</p></div>
+              </div>
+            </div>
+            <dl class="spec">
+              <dt>모델</dt><dd>klue/roberta-base 파인튜닝 · 엔티티 8종 (BIO 레이블 17개)</dd>
+              <dt>스택</dt><dd>FastAPI · SQLAlchemy · JWT / React · Vite</dd>
+              <dt>배포</dt><dd>Vercel · Hugging Face Spaces(Docker) · Supabase(PostgreSQL)</dd>
+            </dl>
+          </div>
+        </div>
+      </section>
+
+      <!-- 02 구조 -->
+      <section class="sec" id="structure">
+        <div class="sh"><div class="no"><b>02</b></div><h2>형식은 규칙으로, 문맥은 모델로</h2></div>
+        <figure><div class="frame scroll" style="background:#fff"><img src="../img/veil/architecture.png" alt="Veil AI 전체 구조도: 웹 화면, FastAPI 서버의 정규식 · NER · 위험도 마스킹 단계, DB, 그리고 외부 LLM 앞단 점선을 지나 가린 문장만 외부 LLM으로 나간다" width="3120" height="1138" loading="lazy"></div>
+          <figcaption><b>전체 구조.</b> 점선 = 외부 LLM 앞단. 마스킹을 거친 문장만 외부 LLM으로 나가고, DB에도 가린 문장만 저장됩니다.</figcaption></figure>
+        <div class="example">
+          <div><span class="k">입력</span><p>환불 계좌 <b>국민은행</b> <b>123456-01-234567</b>, 연락처 <b>010-2345-6789</b>로 안내 메일 써줘</p></div>
+          <div><span class="k">출력</span><p>환불 계좌 <span class="hl-a">[기관명]</span> <span class="hl-a">[계좌번호]</span>, 연락처 <span class="hl-a">[전화번호]</span>로 안내 메일 써줘</p></div>
+          <div><span class="k">판정</span><p>계좌번호 high 10 + 전화번호 medium 5 + 기관명 low 1 + 여러 유형 5 = 21점 → <b>high</b></p></div>
+        </div>
+        <div class="cols">
+          <div class="col">
+            <div class="blk"><h3>왜 두 가지 탐지를 섞었나</h3>
+              <ul class="b">
+                <li><b>형식이 정해진 정보</b>(전화·계좌·주민번호)는 규칙이 빠르고 정확함 → 1차 정규식</li>
+                <li><b>형식이 없는 정보</b>(이름·기관명·문서명·프로젝트명)는 문맥을 봐야 함 → 2차 NER 모델</li>
+                <li>정규식이 가린 문장을 모델에 넘겨 <b>같은 정보를 두 번 잡지 않음</b></li>
+              </ul>
+            </div>
+            <div class="blk"><h3>위험도를 보여 주는 이유</h3>
+              <ul class="b"><li>편하려고 쓰는 AI라도, <b>지금 입력한 정보가 유출되면 얼마나 위험한지</b> 바로 보여 줘 사용자에게 경각심을 주기 위해 위험도를 함께 표시</li></ul>
+            </div>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>단계별 역할</h3>
+              <div class="rows">
+                <div><span class="k">1차 정규식</span><span class="v">번호류·이메일·IP. 키워드 문맥, 체크섬으로 오탐 감소</span></div>
+                <div><span class="k">2차 NER</span><span class="v">이름·주소·기관명·금융·문서·프로젝트·비밀번호·API 키</span></div>
+                <div><span class="k">3차 위험도</span><span class="v">10·5·1점 합산, 유형 2종↑ +5 → 15점↑ high, 7점↑ medium</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 03 파일 구성 -->
+      <section class="sec" id="files">
+        <div class="sh"><div class="no"><b>03</b></div><h2>고치기 쉽게, 단계마다 독립된 유닛으로</h2></div>
+        <div class="units">
+          <div><span>pipeline/</span><b>마스킹 단계별 분리</b><p>정규식·NER·위험도가 각자 파일 하나. 한 단계를 고쳐도 다른 단계는 그대로</p></div>
+          <div><span>llm/</span><b>LLM은 갈아 끼우기</b><p>공통 인터페이스 하나에 회사별 파일. 새 LLM은 파일 추가 + 등록 한 줄</p></div>
+          <div><span>features/</span><b>화면은 기능 단위</b><p>채팅과 관리자 대시보드를 폴더째 나눠 서로 영향 없이 수정</p></div>
+        </div>
+        <div class="fs">
+          <div class="side"><h4>backend/app <small>FastAPI</small></h4>
+            <div class="mod"><div><code>api/</code></div><div><p>요청을 받는 입구 (라우터 3개)</p><div class="files"><span>auth.py</span><span>mask.py</span><span>admin.py</span></div></div></div>
+            <div class="mod hi"><div><code>pipeline/</code></div><div><p>마스킹 3단계 + 예외 키워드</p><div class="files"><span>regex_layer.py</span><span>ner_layer.py</span><span>risk_layer.py</span><span>exception_keywords.py</span></div></div></div>
+            <div class="mod"><div><code>llm/</code></div><div><p>외부 LLM 연결</p><div class="files"><span>base.py</span><span>openai.py</span><span>anthropic.py</span><span>gemini.py</span></div></div></div>
+            <div class="mod"><div><code>core/</code></div><div><p>설정 · DB · 인증</p><div class="files"><span>config.py</span><span>database.py</span><span>security.py</span></div></div></div>
+            <div class="mod"><div><code>schemas/</code></div><div><p>요청·응답 형식 (원문 필드 없음)</p><div class="files"><span>models.py</span></div></div></div>
+          </div>
+          <div class="side"><h4>frontend/src <small>React</small></h4>
+            <div class="mod"><div><code>pages/</code></div><div><p>로그인 · 회원가입 · 채팅 · 프로젝트</p><div class="files"><span>Login.jsx</span><span>Register.jsx</span><span>ChatPage.jsx</span></div></div></div>
+            <div class="mod hi"><div><code>features/chat/</code></div><div><p>채팅 화면 묶음</p><div class="files"><span>sidebar/</span><span>window/</span><span>input/</span><span>hooks/</span></div></div></div>
+            <div class="mod hi"><div><code>features/dashboard/</code></div><div><p>관리자 화면 8개 묶음</p><div class="files"><span>pages/</span><span>components/</span><span>hooks/</span><span>services/</span></div></div></div>
+            <div class="mod"><div><code>components/</code></div><div><p>공통 부품 · 랜딩 시연</p><div class="files"><span>landing/MaskingDemo.jsx</span><span>layout/</span></div></div></div>
+            <div class="mod"><div><code>api/</code></div><div><p>서버 요청을 한 곳에서</p><div class="files"><span>client.js</span></div></div></div>
+          </div>
+        </div>
+        <div class="dg" aria-label="NER이 실패해도 서비스가 멈추지 않는 구조">
+          <div class="nd"><b>정규식</b><small>항상 실행</small></div><div class="ar"></div>
+          <div class="nd hi"><b>NER 모델</b><small>실패하면 건너뜀</small></div><div class="ar"></div>
+          <div class="nd"><b>위험도</b><small>앞 단계 결과로 계산</small></div>
+        </div>
+        <p class="note">단계가 독립돼 있어서 NER 모델을 불러오지 못해도 정규식 결과로 서비스는 계속 돌아갑니다.</p>
+      </section>
+
+      <p class="group-label">내 작업</p>
+
+      <!-- 03 데이터셋 -->
+      <section class="sec" id="dataset">
+        <div class="sh"><div class="no"><b>04</b><span class="badge mine">직접 작업</span></div><h2>NER 학습 데이터셋 설계·구축</h2></div>
+        <div class="cols">
+          <div class="col">
+            <div class="blk"><h3>데이터 구성</h3>
+              <div class="tbl"><table>
+                <thead><tr><th>유형</th><th>문장 수</th><th>넣은 이유</th></tr></thead>
+                <tbody>
+                  <tr><td>단일 엔티티 + NONE</td><td class="num">39,624</td><td>라벨별 기본 학습, NONE으로 과잉 탐지 확인</td></tr>
+                  <tr><td>멀티 엔티티</td><td class="num">4,952</td><td>한 문장에 민감정보가 여러 개 섞인 입력</td></tr>
+                  <tr><td>다중 문장</td><td class="num">5,000</td><td>두 문장 이상 이어지는 실제 업무 입력</td></tr>
+                  <tr class="total"><td>합계</td><td class="num">49,576</td><td></td></tr>
+                </tbody>
+              </table></div>
+            </div>
+            <div class="blk"><h3>라벨별 출처</h3>
+              <div class="tbl"><table>
+                <thead><tr><th>라벨</th><th>출처</th></tr></thead>
+                <tbody>
+                  <tr><td>PERSON · ORG</td><td>KLUE-NER 원본 문장 (뉴스·위키)</td></tr>
+                  <tr><td>ADDRESS · FINANCIAL</td><td>KLUE-NER 원본 + 규칙 기반 합성 절반씩</td></tr>
+                  <tr><td>DOCUMENT · PROJECT · PASSWORD</td><td class="hl-a">대응하는 공개 데이터가 없어 전량 규칙 기반 합성</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>문제</h3>
+              <ul class="b"><li>공개 NER 데이터에는 인명·기관·주소는 있지만 <b>사내 문서명·프로젝트명·비밀번호</b>처럼 기업에서 새는 정보는 라벨 자체가 없음</li></ul>
+            </div>
+            <div class="blk"><h3>해결 방법</h3>
+              <ul class="b">
+                <li><b>있는 라벨은 공개 데이터 그대로:</b> 자연스러운 실제 문장 확보</li>
+                <li><b>없는 라벨은 합성:</b> 규칙 기반으로 업무 문장을 합성해 채움</li>
+                <li><b>실제 입력 형태 반영:</b> 멀티 엔티티·다중 문장 데이터를 따로 추가</li>
+              </ul>
+            </div>
+            <div class="blk"><h3>NONE 문장과 Hard negative</h3>
+              <ul class="b">
+                <li>민감정보가 없는 <b>NONE 문장</b>을 단일 엔티티 데이터와 함께 넣어 과잉 탐지 여부를 확인</li>
+                <li>민감정보와 형태는 비슷하지만 민감정보가 아닌 <b>hard negative</b>를 NONE에 포함</li>
+              </ul>
+            </div>
+            <div class="blk"><h3>내가 내린 결정</h3>
+              <div class="rows">
+                <div><span class="k">출처 기록</span><span class="v">라벨별 출처를 나눠 두고, 라벨마다 성능이 다르게 나올 때 해석하는 근거로 사용</span></div>
+                <div><span class="k">입력 형태</span><span class="v">실제 업무 입력처럼 민감정보가 여러 개 섞이거나 문장이 이어지는 경우를 따로 구성</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 04 파인튜닝 -->
+      <section class="sec" id="finetune">
+        <div class="sh"><div class="no"><b>05</b><span class="badge mine">직접 작업</span></div><h2>NER 모델 파인튜닝과 비교</h2></div>
+        <div class="cols">
+          <div class="col">
+            <div class="blk"><h3>테스트셋 성능 비교</h3>
+              <div class="tbl"><table>
+                <thead><tr><th>모델</th><th>정밀도</th><th>재현율</th><th>F1</th></tr></thead>
+                <tbody>
+                  <tr><td><b class="hl-a">KLUE-RoBERTa</b></td><td class="num hl-a">95.59</td><td class="num hl-a">96.70</td><td class="num hl-a">96.14</td></tr>
+                  <tr><td>KoELECTRA-base</td><td class="num">95.21</td><td class="num">96.08</td><td class="num">95.64</td></tr>
+                  <tr><td>KoELECTRA-NER</td><td class="num">94.58</td><td class="num">95.70</td><td class="num">95.14</td></tr>
+                  <tr><td>KcBERT</td><td class="num">87.27</td><td class="num">91.04</td><td class="num">89.12</td></tr>
+                </tbody>
+              </table></div>
+              <p class="note">단위 %. 평가 기준: 같은 출처 · 생성 규칙으로 만든 학습 미사용 문장 4,996개. 같은 데이터 · 같은 분할로 4개 모델을 비교했습니다.</p>
+            </div>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>문제</h3>
+              <ul class="b">
+                <li>기업 민감정보 8종을 <b>BIO 방식 17개 레이블</b>로 탐지할 한국어 모델이 필요</li>
+                <li>어떤 사전학습 모델이 이 데이터에 맞는지 <b>직접 비교해 보고 고르기</b>로 함</li>
+              </ul>
+            </div>
+            <div class="blk"><h3>해결 방법</h3>
+              <ul class="b">
+                <li><b>같은 조건 비교:</b> 직접 만든 데이터셋과 같은 분할로 한국어 사전학습 모델 4종을 각각 파인튜닝</li>
+                <li><b>에폭 선택:</b> 검증 점수가 가장 높은 8 에폭(반복 횟수) 모델을 테스트에 사용</li>
+                <li><b>테스트셋 평가:</b> 학습에 쓰지 않은 테스트셋에서 F1로 최종 비교</li>
+              </ul>
+            </div>
+            <div class="blk"><h3>내가 내린 결정</h3>
+              <div class="rows">
+                <div><span class="k">모델 선택</span><span class="v"><b>KLUE-RoBERTa 적용</b>4개 모델 중 테스트셋 F1이 가장 높음 (96.14%)</span></div>
+                <div><span class="k">비교 조건</span><span class="v"><b>데이터·분할 통일</b>같은 데이터와 같은 분할로 학습해 모델 차이만 비교되게 함</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 06 직접 고친 문제 -->
+      <section class="sec" id="fixes">
+        <div class="sh"><div class="no"><b>06</b><span class="badge mine">직접 작업</span></div><h2>직접 써 보며 찾은 문제와 수정</h2></div>
+        <div class="tbl"><table>
+          <thead><tr><th>발견한 문제</th><th>수정 내용</th></tr></thead>
+          <tbody>
+            <tr><td><b>전화번호·계좌번호 오탐</b></td><td>‘연락처·계좌’ 키워드 문맥과 숫자 경계 조건을 추가하고, 겹친 구간 제거와 날짜·버전 번호 제외로 서로 잘못 잡히는 문제 해결</td></tr>
+            <tr><td><b>직책이 이름으로 마스킹</b></td><td>‘팀장’ 같은 직책 단어는 PERSON 결과에서 제외하는 예외 처리</td></tr>
+            <tr><td><b>원문이 남는 구조</b></td><td>브라우저(localStorage) 저장을 서버 DB로 옮기고, 마스킹된 문장만 저장하며 탐지 결과에서도 원문 필드 제거</td></tr>
+            <tr><td><b>로그인하면 무조건 대시보드로 이동</b></td><td>역할에 따라 직원은 채팅, 관리자는 대시보드로 이동하도록 수정</td></tr>
+          </tbody>
+        </table></div>
+        <div class="cols">
+          <div class="col">
+            <div class="blk"><h3>검토 방식</h3>
+              <ul class="b">
+                <li><b>실제 업무 문장으로 확인:</b> 계좌·연락처·사내 문서명이 섞인 문장을 넣고 미리보기 결과와 위험도를 확인</li>
+                <li><b>재현 → 수정 → 재확인:</b> 문제가 나온 문장을 그대로 두고, 수정 후 같은 문장으로 다시 확인</li>
+                <li><b>회귀 테스트:</b> 정규식 수정이 기존 탐지를 깨지 않도록 <code>test_regex_layer.py</code> 32건 유지 (전부 통과)</li>
+              </ul>
+            </div>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>회귀 테스트 예시 <span class="note" style="font-weight:400">32건 모두 통과</span></h3>
+              <div class="tbl"><table>
+                <thead><tr><th>입력</th><th>결과</th><th></th></tr></thead>
+                <tbody>
+                  <tr><td>연락처 010-1234-5678</td><td>연락처 <span class="mk">[전화번호]</span></td><td class="mk">✓</td></tr>
+                  <tr><td>국민 123456-01-234567</td><td>국민 <span class="mk">[계좌번호]</span></td><td class="mk">✓</td></tr>
+                  <tr><td>회의는 2024-01-15 14:30에</td><td class="note">그대로 (날짜)</td><td class="mk">✓</td></tr>
+                  <tr><td>버전 1.2.3.4 배포</td><td class="note">그대로 (IP 아님)</td><td class="mk">✓</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 07 랜딩 -->
+      <section class="sec" id="landing">
+        <div class="sh"><div class="no"><b>07</b><span class="badge mine">직접 작업</span></div><h2>랜딩·로그인 화면<small>React · CSS</small></h2></div>
+        <div class="cols wide-left">
+          <div class="col">
+            <figure><div class="frame"><img src="../img/veil/landing.jpg" alt="Veil AI 랜딩 페이지 첫 화면" width="1400" height="875" loading="lazy"></div>
+              <figcaption><b>랜딩 페이지 첫 화면.</b> 미리보기에서 문장 입력 → 민감정보 감지 → 라벨 치환 과정이 반복 재생됩니다.</figcaption></figure>
+            <div class="blk"><h3>페이지 구성 (한 페이지 스크롤)</h3>
+              <p style="font-size:14px"><b>내비게이션</b> → <b>히어로 · 마스킹 시연</b> → <b>보안 기능 카드</b> → <b>운영 흐름 3단계</b> → <b>로그인</b></p>
+            </div>
+            <figure><div class="frame"><img src="../img/veil/chat-screen.jpg" alt="로그인 후 이동하는 직원용 채팅 화면" width="1400" height="875" loading="lazy"></div>
+              <figcaption><b>로그인 후 직원 화면.</b> 응답 모델을 고르고, 입력한 민감정보는 자동으로 마스킹됩니다.</figcaption></figure>
+          </div>
+          <div class="col">
+            <div class="cols" style="grid-template-columns:minmax(0,.75fr) minmax(0,1.25fr);gap:18px;align-items:start">
+              <figure><div class="frame"><img src="../img/veil/login.png" alt="로그인 카드" width="600" height="698" loading="lazy"></div></figure>
+              <div class="blk"><h3>로그인 처리 흐름</h3>
+                <div class="dg v">
+                  <div class="nd"><b>입력 확인</b><small>비어 있으면 요청 전에 안내</small></div><div class="ar"></div>
+                  <div class="nd"><b>로그인 요청</b><small>공통 API 모듈의 login()</small></div><div class="ar"></div>
+                  <div class="nd"><b>토큰·사용자 정보 저장</b><small>역할 · 부서 포함</small></div><div class="ar"></div>
+                  <div class="nd hi"><b>역할별 이동</b><small>직원 → 채팅 · 관리자 → 대시보드</small></div>
+                </div>
+                <div class="branch"><span class="tag">실패</span>남은 로그인 정보를 지우고 서버가 준 오류 문구 표시</div>
+              </div>
+            </div>
+            <p class="note"><b>반응형:</b> 1040px · 760px 두 구간 미디어쿼리로 태블릿·모바일 배치 조정</p>
+          </div>
+        </div>
+      </section>
+
+      <p class="group-label">시스템 전체</p>
+
+      <!-- 08 흐름 -->
+      <section class="sec" id="flow">
+        <div class="sh"><div class="no"><b>08</b></div><h2>메시지 한 건이 처리되는 과정</h2></div>
+        <div class="cols">
+          <div class="col">
+            <ol class="flow">
+              <li><span class="n">1</span><span class="lane fe">프론트</span><div><b>전송 → applyPreviewMask()</b><p>ChatPage가 원문을 미리보기 API로 먼저 보냄</p></div></li>
+              <li><span class="n">2</span><span class="lane be">백엔드</span><div><b>POST /api/mask/preview</b><p>run_masking_pipeline() 실행, 원문 없이 마스킹 결과만 반환</p></div></li>
+              <li><span class="n">3</span><span class="lane fe">프론트</span><div><b>말풍선 교체</b><p>LLM 응답 전에 사용자 말풍선을 가려진 문장으로 바꿈</p></div></li>
+              <li><span class="n">4</span><span class="lane be">백엔드</span><div><b>POST /api/mask/chat</b><p>예외 키워드 조회 → 파이프라인(스레드풀) → 탐지 로그 저장 → LLM 호출</p></div></li>
+              <li><span class="n">5</span><span class="lane ex">외부</span><div><b>선택한 LLM</b><p>GPT-4o · Claude · Gemini가 마스킹된 텍스트만 받아 답변</p></div></li>
+              <li><span class="n">6</span><span class="lane fe">프론트</span><div><b>POST /conversations</b><p>답변 표시 후 대화 저장, entities의 original 필드는 제거</p></div></li>
+            </ol>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>흐름에서 확인한 포인트</h3>
+              <ul class="b">
+                <li><b>인증:</b> axios 인터셉터가 모든 요청에 JWT를 붙이고, 401이 오면 로그인 화면으로 보냄</li>
+                <li><b>미리보기와 응답 분리:</b> 무엇이 가려졌는지 LLM 응답을 기다리기 전에 확인 가능</li>
+                <li><b>서버 보호:</b> CPU를 오래 쓰는 NER 추론은 run_in_threadpool로 돌려 이벤트 루프를 막지 않음</li>
+                <li><b>원문 보호:</b> 응답 형식에 원문 필드가 없고, DB에는 마스킹된 텍스트만 저장</li>
+              </ul>
+            </div>
+            <div class="blk"><h3>마스킹 파이프라인 (run_masking_pipeline)</h3>
+              <div class="dg">
+                <div class="nd"><b>1차 정규식</b><small>번호·이메일·IP</small></div><div class="ar"></div>
+                <div class="nd hi"><b>2차 NER</b><small>정규식이 가린 문장에서 문맥형</small></div><div class="ar"></div>
+                <div class="nd"><b>3차 위험도</b><small>탐지 결과 합산</small></div>
+              </div>
+              <div class="branch"><span class="tag">NER 실패</span>정규식 결과만으로 계속 진행</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 05 NER -->
+      <section class="sec" id="ner">
+        <div class="sh"><div class="no"><b>09</b></div><h2>NER 추론과 마스킹<small>ner_layer.py</small></h2></div>
+        <div class="cols wide-left">
+          <div class="col">
+            <div class="blk"><h3>BIO 태그를 엔티티 구간으로 묶기</h3>
+              <p class="note">모델은 토큰마다 B(시작)·I(이어짐)·O(해당 없음) 태그를 붙이고, 같은 종류의 B→I를 하나로 묶어 가립니다. (예시 문장)</p>
+              <div class="toks">
+                <div class="tok e"><span>김민지</span><i>B-PERSON</i></div>
+                <div class="tok"><span>팀장에게</span><i>O</i></div>
+                <div class="tok e"><span>알파</span><i>B-PROJECT</i></div>
+                <div class="tok e"><span>프로젝트</span><i>I-PROJECT</i></div>
+                <div class="tok"><span>보고서</span><i>O</i></div>
+                <div class="tok"><span>전달해줘</span><i>O</i></div>
+              </div>
+              <div class="dg">
+                <div class="nd"><b>토큰 → 글자 위치</b><small>offset으로 원문 위치 기억</small></div><div class="ar"></div>
+                <div class="nd"><b>태그 예측</b><small>토큰마다 17개 레이블 중 하나</small></div><div class="ar"></div>
+                <div class="nd"><b>구간 묶기</b><small>B로 시작, 같은 종류 I 이어 붙임</small></div><div class="ar"></div>
+                <div class="nd hi"><b>마스킹</b><small>구간을 라벨로 치환</small></div>
+              </div>
+              <p class="res"><span class="mk">[이름]</span> 팀장에게 <span class="mk">[프로젝트명]</span> 보고서 전달해줘 <span class="note">· 직책 ‘팀장’은 남김</span></p>
+            </div>
+            <div class="blk"><h3>엔티티별 위험도 (NER_RISK_MAP)</h3>
+              <div class="tbl"><table><tbody>
+                <tr><td><b>high</b></td><td>비밀번호 · API 키 · 금융정보</td></tr>
+                <tr><td class="lv-med">medium</td><td>이름 · 주소</td></tr>
+                <tr><td class="lv-low">low</td><td>문서명 · 기관명 · 프로젝트명</td></tr>
+              </tbody></table></div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>마스킹할 때 처리하는 것 (_apply_mask)</h3>
+              <ul class="b">
+                <li><b>위치 보정:</b> 태그로 바꾸면 글자 수가 달라지므로 offset을 누적해 다음 엔티티 위치를 맞춤</li>
+                <li><b>예외 키워드:</b> 관리자가 승인한 키워드와 구간이 겹치면 건너뜀</li>
+                <li><b>직책 예외:</b> ‘팀장’만 잡히면 무시하고, ‘김민지 팀장’이면 이름 부분만 마스킹</li>
+              </ul>
+            </div>
+            <div class="blk"><h3>모델을 안전하게 불러오기</h3>
+              <div class="dg v">
+                <div class="nd"><b>서버 시작 → 백그라운드에서 로드</b><small>첫 요청이 기다리지 않게 미리</small></div><div class="ar"></div>
+                <div class="nd"><b>가중치 없으면 내려받기</b><small>비공개 Hugging Face 저장소에서</small></div><div class="ar"></div>
+                <div class="nd"><b>모델 검증</b><small>가중치 누락이나 레이블 불일치면 로드 거부</small></div><div class="ar"></div>
+                <div class="nd hi"><b>한 번만 로드해 공유</b><small>동시 요청에도 싱글턴 + Lock으로 하나만</small></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 09 정규식 -->
+      <section class="sec" id="regex">
+        <div class="sh"><div class="no"><b>10</b></div><h2>정규식 레이어</h2></div>
+        <div class="cols">
+          <div class="col">
+            <div class="blk"><h3>탐지 순서와 중복 방지 (detect_all)</h3>
+              <div class="order">
+                <span class="strict">전화</span><span class="strict">카드</span><span class="strict">주민·외국인</span><span class="strict">사업자</span><em>→</em><span>계좌</span><span>차량</span><span>현금영수증</span><span>법인</span><span>이메일</span><span>IP</span><span>여권</span>
+              </div>
+              <div class="scale"><span>형식이 엄격하거나 검증 규칙이 있는 항목 먼저</span><span>느슨한 형식은 남은 숫자만</span></div>
+              <p class="note">앞에서 잡힌 구간은 뒤 탐지기가 다시 잡지 않도록 전체가 공유합니다.</p>
+            </div>
+            <div class="blk"><h3>키워드는 남기고 번호만 가리기</h3>
+              <div class="ba"><div><small>입력</small>연락처 010-1234-5678</div><span class="to">→</span><div><small>결과</small>연락처 <span class="mk">[전화번호]</span></div></div>
+              <p class="note">‘연락처·전화·휴대폰’ 같은 키워드 뒤 번호만 캡처해서 가려, 문장이 자연스럽게 남습니다.</p>
+            </div>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>오탐을 줄이는 장치</h3>
+              <div class="tbl"><table>
+                <thead><tr><th>장치</th><th>코드에서 하는 일</th></tr></thead>
+                <tbody>
+                  <tr><td><b>숫자 경계</b></td><td>(?&lt;!\d) · (?!\d)로 긴 숫자 중간을 잘라 잡지 않음</td></tr>
+                  <tr><td><b>검증 규칙</b></td><td>사업자번호 국세청 체크섬, 카드 BIN·길이, 주민번호 생년월일·성별 자리, IBAN 검증</td></tr>
+                  <tr><td><b>문맥 키워드</b></td><td>SWIFT·은행·송금 같은 단어가 있을 때만 은행코드로 판단</td></tr>
+                  <tr><td><b>예외 패턴</b></td><td>날짜 형식(2024-01-15), ‘버전’ 뒤 숫자(1.2.3.4)는 제외</td></tr>
+                  <tr><td><b>치환 순서</b></td><td>뒤에서부터 치환해 앞쪽 위치가 밀리지 않게 함</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+            <div class="blk"><h3>회귀 테스트 (tests/test_regex_layer.py)</h3>
+              <p style="font-size:14px"><b>32개 케이스 모두 통과</b></p>
+              <div class="tbl"><table>
+                <thead><tr><th>입력</th><th>기대 결과</th></tr></thead>
+                <tbody>
+                  <tr><td>국민 123456-01-234567</td><td>국민 [계좌번호]</td></tr>
+                  <tr><td>회의는 2024-01-15 14:30에</td><td class="note">그대로 (날짜는 제외)</td></tr>
+                  <tr><td>버전 1.2.3.4 배포</td><td class="note">그대로 (IP 아님)</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 10 위험도 -->
+      <section class="sec" id="risk">
+        <div class="sh"><div class="no"><b>11</b></div><h2>위험도 판정과 예외 키워드</h2></div>
+        <div class="cols">
+          <div class="col">
+            <div class="blk"><h3>위험도 계산 방식</h3>
+              <div class="sum"><span>계좌번호 <b>high 10</b></span><span class="eq">+</span><span>전화번호 <b>medium 5</b></span><span class="eq">+</span><span>기관명 <b>low 1</b></span><span class="eq">+</span><span>유형 2종 이상 <b>+5</b></span><span class="eq">=</span><span class="tot">21점 → high</span></div>
+              <div class="gauge" aria-label="0~6점 low, 7~14점 medium, 15점 이상 high"><div class="l">low</div><div class="m">medium</div><div class="h">high</div></div>
+              <div class="gticks"><span>0</span><span>7</span><span>15점 ~</span></div>
+              <p class="note">항목별 가중치 high 10 · medium 5 · low 1을 더하고, 여러 유형이 섞이면 5점을 더합니다.</p>
+            </div>
+            <div class="blk"><h3>계산 예시</h3>
+              <div class="tbl"><table>
+                <thead><tr><th>탐지 결과</th><th>점수</th><th>판정</th></tr></thead>
+                <tbody>
+                  <tr><td>전화번호 1개</td><td>medium 5</td><td>low</td></tr>
+                  <tr><td>이름 + 문서명</td><td>5 + 1 + 유형 2종 5 = 11</td><td>medium</td></tr>
+                  <tr><td>계좌번호 + 전화번호</td><td>10 + 5 + 유형 2종 5 = 20</td><td><b>high</b></td></tr>
+                </tbody>
+              </table></div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>정규식 항목별 위험도 (RISK_MAP)</h3>
+              <div class="tbl"><table><tbody>
+                <tr><td><b>high</b></td><td>주민등록번호 · 외국인등록번호 · 카드번호 · 계좌번호 · 여권번호</td></tr>
+                <tr><td class="lv-med">medium</td><td>전화번호 · 이메일 · 차량번호 · 사업자등록번호 · 법인등록번호</td></tr>
+                <tr><td class="lv-low">low</td><td>IP 주소 · 현금영수증번호</td></tr>
+              </tbody></table></div>
+            </div>
+            <div class="blk"><h3>예외 키워드 흐름</h3>
+              <div class="steps">
+                <div><b>직원 요청</b><p>채팅 화면에서 키워드와 사유 제출</p></div>
+                <div><b>관리자 승인</b><p>예외 관리 화면에서 승인·활성화</p></div>
+                <div><b>마스킹 제외</b><p>탐지 구간이 키워드와 겹치면 건너뜀</p></div>
+              </div>
+<figure><div class="frame"><img src="../img/veil/exceptions.jpg" alt="관리자 예외 관리 화면: 직원이 요청한 예외 키워드 목록" width="1400" height="486" loading="lazy"></div>
+                <figcaption><b>예외 관리 화면.</b> 직원이 보낸 키워드와 사유를 보고 관리자가 승인하거나 거절합니다.</figcaption></figure>
+              <p class="note"><b>예:</b> 자사 공개 제품명을 예외로 등록하면, 이름이나 기관명으로 탐지돼도 마스킹하지 않습니다.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 11 API -->
+      <section class="sec" id="api">
+        <div class="sh"><div class="no"><b>12</b></div><h2>API와 데이터 구조<small>FastAPI · SQLAlchemy</small></h2></div>
+        <div class="cols">
+          <div class="col">
+            <div class="blk"><h3>API 구성</h3>
+              <div class="tbl"><table>
+                <thead><tr><th>라우터</th><th>주요 엔드포인트</th><th>권한</th></tr></thead>
+                <tbody>
+                  <tr><td><b>/api/auth</b></td><td>login · register · departments · me</td><td>공개 / 로그인</td></tr>
+                  <tr><td><b>/api/mask</b></td><td>preview · chat · conversations(조회·저장·삭제) · exception-requests</td><td>로그인 사용자</td></tr>
+                  <tr><td><b>/api/admin</b></td><td>stats · dashboard(요약·사용자·부서) · logs · users · exception-requests · exception-keywords</td><td class="hl-a">관리자 role</td></tr>
+                  <tr><td><b>/api/health</b></td><td>DB까지 실제로 조회해 상태 확인</td><td>공개</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+            <div class="blk"><h3>LLM 교체 구조 (Provider 패턴)</h3>
+              <div class="hub">
+                <div class="core"><b>BaseLLM</b>공통 인터페이스<br>chat(messages)</div><span>→</span>
+                <ul><li><b>openai</b>GPT-4o</li><li><b>anthropic</b>Claude</li><li><b>gemini</b>Gemini</li></ul>
+              </div>
+              <p class="note">채팅 API는 BaseLLM만 알고, 사용자가 고른 이름으로 구현체를 찾아 호출합니다.</p>
+            </div>
+            <figure><div class="frame"><img src="../img/veil/user-management.jpg" alt="관리자 사용자 관리 화면" width="1400" height="729" loading="lazy"></div>
+              <figcaption><b>사용자 관리.</b> 관리자 API로 계정 권한을 바꾸거나 정리합니다.</figcaption></figure>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>DB 테이블</h3>
+              <div class="tbl"><table>
+                <thead><tr><th>테이블</th><th>저장하는 것</th></tr></thead>
+                <tbody>
+                  <tr><td><code>users</code></td><td>아이디 · 비밀번호 해시(bcrypt) · 이름 · 부서 · 역할</td></tr>
+                  <tr><td><code>masking_logs</code></td><td>탐지 유형 · 단계 · 위험도 · 개수 (원문 없음)</td></tr>
+                  <tr><td><code>chat_conversations</code></td><td>사용자별 대화 목록 · 제목 · 프로젝트</td></tr>
+                  <tr><td><code>chat_messages</code></td><td>마스킹된 메시지 · 탐지 항목(원문 제외) · 위험도</td></tr>
+                  <tr><td><code>exception_requests</code></td><td>직원 예외 요청 · 사유 · 처리 상태</td></tr>
+                  <tr><td><code>exception_keywords</code></td><td>승인된 예외 키워드 · 활성 여부</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+            <div class="blk"><h3>시스템 분석 · 보안 설계</h3>
+              <ul class="b">
+                <li><b>토큰 무효화:</b> JWT에 서버 시작 시각을 넣어, 재시작하면 이전 토큰이 자동으로 막힘</li>
+                <li><b>관리자 API:</b> 화면과 별개로 서버가 토큰의 role을 다시 확인</li>
+                <li><b>DB 노출 차단:</b> Supabase가 테이블을 REST로 노출하므로 시작 시 RLS를 자동으로 켬</li>
+                <li><b>본인 대화만:</b> 대화 조회·삭제는 user_id로 한 번 더 필터링</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 12 화면 -->
+      <section class="sec" id="screens">
+        <div class="sh"><div class="no"><b>13</b></div><h2>채팅과 관리자 화면<small>React · Vite</small></h2></div>
+        <div class="cols">
+          <div class="col">
+            <figure><div class="frame"><img src="../img/veil/dashboard.jpg" alt="관리자 대시보드 화면" width="1400" height="654" loading="lazy"></div>
+              <figcaption><b>관리자 대시보드.</b> 오늘·누적 마스킹 건수, 유형별·부서별 통계를 한 화면에서 봅니다.</figcaption></figure>
+            <figure><div class="frame"><img src="../img/veil/security-logs.jpg" alt="보안 현황 이력 화면" width="1400" height="632" loading="lazy"></div>
+              <figcaption><b>보안 현황 이력.</b> 요청마다 탐지 유형·위험도·단계를 기록합니다.</figcaption></figure>
+            <figure><div class="frame" style="background:#fff;padding:10px"><img src="../img/veil/chat-masked.png" alt="마스킹된 채팅 말풍선" width="777" height="240" loading="lazy"></div>
+              <figcaption><b>채팅 화면.</b> 마스킹된 항목 수와 종류를 말풍선 아래에 표시하고, 응답 모델(GPT · Claude · Gemini)을 고를 수 있습니다.</figcaption></figure>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>화면 구성</h3>
+              <div class="tbl"><table>
+                <thead><tr><th>구분</th><th>페이지</th></tr></thead>
+                <tbody>
+                  <tr><td><b>직원</b></td><td>랜딩·로그인(직접 구현) · 회원가입 · 채팅 · 프로젝트별 채팅</td></tr>
+                  <tr><td><b>관리자</b></td><td>대시보드 홈 · 회원 승인 · 사용자 관리 · 사용자별 통계 · 부서별 통계 · 예외 요청 · 예외 키워드 · 보안 로그</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+            <div class="blk"><h3>코드 구조</h3>
+              <div class="rows">
+                <div><span class="k">api/client.js</span><span class="v">axios 인스턴스. 요청마다 토큰을 붙이고 401이면 로그인으로 이동</span></div>
+                <div><span class="k">PrivateRoute</span><span class="v">비로그인·승인 대기 계정을 막고, 역할에 맞는 첫 화면으로 보냄</span></div>
+              </div>
+            </div>
+            <div class="blk"><h3>시스템 분석 · 권한과 대화 저장</h3>
+              <ul class="b">
+                <li>화면 접근 제어는 브라우저에 저장된 역할을 보지만, <b>실제 권한은 백엔드가 다시 확인</b></li>
+                <li>대화는 브라우저가 아니라 <b>서버 DB에서 불러와</b> 새로고침해도 유지</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 13 배포 -->
+      <section class="sec" id="deploy">
+        <div class="sh"><div class="no"><b>14</b></div><h2>실제 사용 가능한 서비스로 배포</h2></div>
+        <div class="deploy">
+          <div><b>Vercel</b><em>React 프론트</em><span>GitHub push 시 자동 재배포, API 주소는 환경변수로 주입</span></div>
+          <div><b>Hugging Face Spaces</b><em>FastAPI + NER 모델 (Docker)</em><span>CPU 전용 torch로 이미지 축소, 모델 가중치는 시작 시 HF Hub에서 내려받음</span></div>
+          <div><b>Supabase</b><em>PostgreSQL</em><span>Session pooler로 접속, 테이블 생성 시 RLS 자동 적용</span></div>
+          <div><b>GitHub Actions</b><em>keepalive</em><span>매일 /api/health를 호출해 서버와 DB 상태 유지</span></div>
+        </div>
+        <div class="cols">
+          <div class="col">
+            <div class="blk"><h3>배포 중 생긴 문제와 해결</h3>
+              <div class="tbl"><table>
+                <thead><tr><th>문제</th><th>해결</th></tr></thead>
+                <tbody>
+                  <tr><td>DB 직접 연결 실패</td><td>직접 연결이 IPv6 전용이라 Session pooler 주소 사용</td></tr>
+                  <tr><td>첫 요청 지연</td><td>서버 시작 시 별도 스레드에서 NER 모델을 미리 로드 (warmup)</td></tr>
+                </tbody>
+              </table></div>
+              <p style="font-size:13.5px">공개 주소 <a href="https://veil-ai-platform.vercel.app"><b class="hl-a">veil-ai-platform.vercel.app</b></a></p>
+            </div>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>서버가 켜질 때</h3>
+              <div class="dg v">
+                <div class="nd"><b>시작 시각 기록</b><small>이전 토큰을 자동으로 무효화하는 기준</small></div><div class="ar"></div>
+                <div class="nd"><b>DB 테이블 생성 · RLS 켜기</b><small>Supabase REST 노출 차단</small></div><div class="ar"></div>
+                <div class="nd hi"><b>NER 모델 미리 로드</b><small>별도 스레드, 가중치는 HF Hub에서</small></div><div class="ar"></div>
+                <div class="nd"><b>요청 받기</b><small>매일 GitHub Actions가 /api/health 호출</small></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 14 결과 -->
+      <section class="sec" id="result">
+        <div class="sh"><div class="no"><b>15</b></div><h2>결과</h2></div>
+        <div class="cols">
+          <div class="col">
+            <div class="blk"><h3>결과</h3>
+              <ul class="b">
+                <li>규칙과 모델을 섞은 3단계 파이프라인으로 번호류와 문맥형 정보를 <b>0.1초 이내에 실시간 마스킹</b></li>
+                <li>직접 구축한 데이터셋으로 학습한 모델이 <b>테스트셋 F1 96.14%</b></li>
+              </ul>
+            </div>
+            <figure><div class="frame" style="background:#fff;padding:10px"><img src="../img/veil/chat-masked.png" alt="3개 항목이 마스킹된 채팅 말풍선" width="777" height="240" loading="lazy"></div>
+              <figcaption><b>3개 항목 마스킹.</b> 정규식이 계좌번호·전화번호를, NER 모델이 은행명(기관명)을 잡아 위험도 high</figcaption></figure>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>마스킹 처리 시간</h3>
+              <div class="tbl"><table>
+                <thead><tr><th>입력 길이</th><th>평균</th></tr></thead>
+                <tbody>
+                  <tr><td>50자 미만</td><td class="num hl-a">53ms</td></tr>
+                  <tr><td>50 ~ 99자</td><td class="num hl-a">66ms</td></tr>
+                  <tr><td>100 ~ 125자</td><td class="num hl-a">78ms</td></tr>
+                </tbody>
+              </table></div>
+              <p class="note">24건 전체 35 ~ 90ms, 평균 66ms로 모든 요청 0.1초 이내 (배포 서버 실측 · LLM 응답 시간 제외)</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <footer><a href="veil-ai.html">← 프로젝트 요약으로</a><span>장하은 · jhe290609@gmail.com · github.com/haeun910</span></footer>
+</div>
+<script>
+try{history.scrollRestoration='manual'}catch(e){}
+function toTop(){if(!location.hash||location.hash.length<2){window.scrollTo(0,0)}}
+toTop();window.addEventListener('load',toTop);window.addEventListener('pageshow',toTop);
+</script>
+<script>
+document.addEventListener('click',e=>{const ov=document.querySelector('.zoom-ov');if(ov){ov.remove();return}
+const img=e.target.closest('figure img');if(!img||e.target.closest('a'))return;
+const o=document.createElement('div');o.className='zoom-ov';const c=document.createElement('img');c.src=img.currentSrc||img.src;c.alt=img.alt;o.appendChild(c);document.body.appendChild(o)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelector('.zoom-ov')?.remove()});
+</script>
+</body>
+</html>

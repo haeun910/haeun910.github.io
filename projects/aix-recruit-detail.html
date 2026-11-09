@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AI 채용 평가 · 장하은 포트폴리오</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<meta name="description" content="AI 채용 평가 기술 상세: 신뢰성 감사, API 서버, 에이전트 구조">
+<link rel="stylesheet" href="../assets/project.css">
+</head>
+<body>
+<div class="page">
+
+  <div class="top">
+    <a href="aix-recruit.html">← 프로젝트 요약으로</a>
+    <span>PROJECT 02 · AI 채용 평가 · 기술 상세</span>
+  </div>
+
+  <header class="phead">
+    <div>
+      <p class="cap">다중 에이전트 · LLM 평가 신뢰성</p>
+      <h1>AI 채용 평가</h1>
+      <p class="tagline">점수가 아니라 신뢰를 평가합니다</p>
+      <p class="hashes"><span>#신뢰성감사</span><span>#멀티에이전트</span><span>#FlaskAPI</span><span>#PDF리포트</span></p>
+    </div>
+    <dl class="meta">
+      <dt>기간</dt><dd>2025.12 – 2026.02 · 2026.10 고도화</dd>
+      <dt>수상</dt><dd>최우수상 (2등)</dd>
+      <dt>인원</dt><dd>팀 2인</dd>
+      <dt>담당</dt><dd class="role">기획 · 신뢰성 감사 프로토타입(1~3차) · Flask API 서버 · 에이전트 흐름 설계 · 발표 자료 제작</dd>
+      <dt>스택</dt><dd>Python · Flask · GPT-4o · Claude Sonnet 4 · ReportLab</dd>
+      <dt>링크</dt><dd class="links"><a href="https://github.com/haeun910/ai-recruit-trust">↗ GitHub</a></dd>
+    </dl>
+  </header>
+
+  <div class="wrap">
+    <nav class="toc" aria-label="목차">
+      <h4>프로젝트</h4>
+      <ol>
+        <li><a href="#overview"><span>01</span>개요</a></li>
+        <li><a href="#structure"><span>02</span>시스템 구조</a></li>
+        <li><a href="#files"><span>03</span>파일 구성</a></li>
+      </ol>
+      <h4>내 작업</h4>
+      <ol class="mine">
+        <li><a href="#audit"><span>04</span>신뢰성 감사 프로토타입</a></li>
+        <li><a href="#versions"><span>05</span>버전별 발전</a></li>
+        <li><a href="#api"><span>06</span>Flask API 서버</a></li>
+        <li><a href="#bug"><span>07</span>Total Trust 오류 수정</a></li>
+      </ol>
+      <h4>시스템 전체</h4>
+      <ol>
+        <li><a href="#evaluator"><span>08</span>평가 에이전트</a></li>
+        <li><a href="#explainer"><span>09</span>설명 에이전트와 등급</a></li>
+        <li><a href="#judge"><span>10</span>LLM Judge와 교차검증</a></li>
+      </ol>
+      <h4>정리</h4>
+      <ol>
+        <li><a href="#result"><span>11</span>결과</a></li>
+      </ol>
+    </nav>
+
+    <main class="content">
+
+      <!-- 01 개요 -->
+      <section class="sec" id="overview">
+        <div class="sh"><div class="no"><b>01</b></div><h2>개요</h2></div>
+        <div class="cols">
+          <div class="col">
+            <figure><div class="frame"><img src="../img/aix/result-radar.jpg" alt="평가 결과 화면: A급(우수) 76.0점, 신뢰도 93%, 5대 역량 레이더 차트" width="2192" height="960" loading="lazy"></div>
+              <figcaption><b>결과 화면.</b> 시연 이력서 A급 76.0점 · 93% = 종합 신뢰도 92.5, 최종 신뢰 점수 73.8과 다른 지표</figcaption></figure>
+            <figure><div class="frame"><img src="../img/aix/upload.jpg" alt="이력서 파일과 직무를 고르는 업로드 화면" width="1400" height="672" loading="lazy"></div>
+              <figcaption><b>② 업로드.</b> 이력서 파일(txt · pdf · docx)과 직무를 고르고 평가를 실행합니다.</figcaption></figure>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>문제</h3>
+              <ul class="b">
+                <li>AI 서류 평가는 빠르게 늘지만 <b>왜 그 점수인지 설명하지 않는 블랙박스</b></li>
+                <li>형식만 바꾸거나 <b>키워드를 반복해도 점수가 달라질</b> 수 있음</li>
+                <li>점수와 함께 <b>“이 점수를 믿어도 되는가”</b>를 평가하는 시스템을 기획</li>
+              </ul>
+            </div>
+            <div class="blk"><h3>주요 기능</h3>
+              <div class="feats">
+                <div><span>01</span><b>이력서 업로드</b><p>txt · pdf · docx에서 텍스트 추출</p></div>
+                <div><span>02</span><b>5대 역량 채점</b><p>점수마다 이력서 속 근거 문장 제시</p></div>
+                <div><span>03</span><b>신뢰성 4지표</b><p>근거정합성 · 안정성 · 강건성 · 편향위험</p></div>
+                <div><span>04</span><b>교차검증</b><p>규칙 기반 점수와 Claude 채점의 일치도</p></div>
+                <div><span>05</span><b>PDF 리포트</b><p>결과 화면을 한글 PDF로 내려받기</p></div>
+                <div><span>06</span><b>신뢰성 감사</b><p>변형 이력서로 점수 변동폭 측정</p></div>
+              </div>
+            </div>
+            <dl class="spec">
+              <dt>내 역할</dt><dd>기획 · 신뢰성 감사 프로토타입(1~3차) · Flask API 서버 · 에이전트 흐름 설계 · 발표 자료 제작</dd>
+            </dl>
+          </div>
+        </div>
+      </section>
+
+      <!-- 02 구조 -->
+      <section class="sec" id="structure">
+        <div class="sh"><div class="no"><b>02</b></div><h2>평가는 GPT로, 검증은 Claude로</h2></div>
+        <figure><div class="frame scroll" style="background:#fff"><img src="../img/aix/architecture.png" alt="AI 채용 평가 구조도: 웹 화면, Flask API 서버(파일 처리 · 평가 · 설명 에이전트 · LLM Judge · PDF 리포트 · 임시 저장), GPT-4o는 평가 · 설명, Claude Sonnet 4는 이력서 없이 평가 결과로 4지표를 재채점" width="2800" height="820" loading="lazy"></div>
+          <figcaption><b>전체 구조.</b> 이력서 한 건이 평가 → 설명 → 검증을 거치고, 끝나면 서버에 아무것도 남지 않습니다.</figcaption></figure>
+        <div class="example">
+          <div><span class="k">평가</span><p>기준별 20점 만점 13 · 14 · 14 · 18 · 17 (창의성 · 의사소통 · 전문지식 · 인성 · 열정), 항목마다 이력서 속 근거 문장</p></div>
+          <div><span class="k">설명</span><p><span class="hl-a">A급 (우수) 76.0점</span>, 강점 인성 · 열정 / 보완점 창의성</p></div>
+          <div><span class="k">검증</span><p>종합 신뢰도 <span class="hl-a">92.5</span> · Claude 교차검증 일치도 70%</p></div>
+        </div>
+        <div class="cols">
+          <div class="col">
+            <div class="blk"><h3>이력서 한 건이 처리되는 과정</h3>
+              <div class="dg v">
+                <div class="nd"><b>파일 검사 · 저장</b><small>형식 확인, 시각 기반 새 이름으로 임시 저장</small></div><div class="ar"></div>
+                <div class="nd"><b>텍스트 추출</b><small>txt · pdf · docx, 10자 미만이면 오류</small></div><div class="ar"></div>
+                <div class="nd hi"><b>평가 · 설명</b><small>GPT-4o가 기준 5개 채점 → 등급 · 강점 · 종합 의견</small></div><div class="ar"></div>
+                <div class="nd hi"><b>신뢰성 검증</b><small>규칙 기반 4지표 + Claude 채점 일치도</small></div><div class="ar"></div>
+                <div class="nd"><b>화면용 변환 · 삭제</b><small>100점 만점 JSON 응답, 업로드 파일 삭제</small></div>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <figure><div class="frame"><img src="../img/aix/progress.jpg" alt="파일 업로드, 텍스트 추출, GPT 평가, Claude 검증 순서로 진행 상태를 보여 주는 화면" width="1400" height="672" loading="lazy"></div>
+              <figcaption><b>진행 화면.</b> 업로드 → 텍스트 추출 → GPT 평가 → Claude 검증 순서로 상태가 바뀝니다.</figcaption></figure>
+            <div class="blk"><h3>역할을 나눈 이유</h3>
+              <ul class="b">
+                <li><b>평가와 설명 분리:</b> 점수 매기기와 근거 정리를 나눠 점수마다 이력서 문장을 붙임</li>
+                <li><b>다른 모델이 검증:</b> GPT가 스스로를 검증하지 않도록 Claude가 이력서 없이 평가 결과만 받아 4지표를 다시 채점(일치도에만 쓰이고 종합 신뢰도에는 안 들어감)</li>
+                <li><b>호출 횟수:</b> 이력서 한 건에 GPT 6번(채점 5 + 종합 1), Claude 1번</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 03 파일 구성 -->
+      <section class="sec" id="files">
+        <div class="sh"><div class="no"><b>03</b></div><h2>서버와 평가 엔진을 나눈 구조</h2></div>
+        <div class="units">
+          <div><span>flask_api_server.py</span><b>서버는 입구만</b><p>파일 처리와 응답만 맡고, 평가 로직은 엔진 파일 하나에 모음</p></div>
+          <div><span>평가 엔진</span><b>세 에이전트를 한 번에</b><p>평가 → 설명 → 검증 결과를 하나로 묶어 서버에 돌려줌</p></div>
+          <div><span>.env</span><b>키는 코드 밖에</b><p>API 키와 모델 이름은 환경 변수에서 읽음</p></div>
+        </div>
+        <div class="fs">
+          <div class="side"><h4>최종 버전 <small>Flask · GPT-4o · Claude</small></h4>
+            <div class="mod hi"><div><code>flask_api_server.py</code></div><div><p>API 서버: 상태 확인 · 이력서 평가 · PDF 리포트 <span class="badge mine">직접</span></p></div></div>
+            <div class="mod"><div><code>resume_evaluation…</code></div><div><p>평가 엔진</p><div class="files"><span>평가 에이전트</span><span>설명 에이전트</span><span>LLM Judge</span><span>전체 실행</span></div></div></div>
+            <div class="mod"><div><code>index.html</code></div><div><p>업로드 · 진행 단계 · 결과 화면 · Total Trust 계산</p></div></div>
+          </div>
+          <div class="side"><h4>이전 버전 <small>혼자 만든 프로토타입</small></h4>
+            <div class="mod hi"><div><code>page.py</code></div><div><p>1차 · 신뢰성 감사 (Streamlit)</p></div></div>
+            <div class="mod hi"><div><code>page_v2.py</code></div><div><p>2차 · 기업 전용 감사 + PDF (ReportLab)</p></div></div>
+            <div class="mod hi"><div><code>server.py</code></div><div><p>3차 · API 서버 분리 (FastAPI)</p></div></div>
+            <div class="mod hi"><div><code>home.html</code></div><div><p>3차 · 웹 화면 초안, 최종 화면의 원형</p></div></div>
+          </div>
+        </div>
+      </section>
+
+      <p class="group-label">내 작업</p>
+
+      <!-- 04 신뢰성 감사 -->
+      <section class="sec" id="audit">
+        <div class="sh"><div class="no"><b>04</b><span class="badge mine">직접 작업</span></div><h2>점수 대신 점수의 변동폭으로 신뢰성 판정<small>1차 · Streamlit</small></h2></div>
+        <div class="cols">
+          <div class="col">
+            <div class="blk"><h3>감사 흐름</h3>
+              <div class="dg v">
+                <div class="nd"><b>변형 케이스 만들기</b><small>같은 글 반복 5회 · 형식 변형 3종 · 키워드 1·3·5번 반복</small></div><div class="ar"></div>
+                <div class="nd"><b>케이스마다 LLM 채점</b><small>총점 0~100 · 직무 적합성 · 근거성 · 명확성</small></div><div class="ar"></div>
+                <div class="nd"><b>점수 변동폭 계산</b><small>반복 표준편차 · 형식 간 차이 · 키워드 상승폭</small></div><div class="ar"></div>
+                <div class="nd hi"><b>판정 + 이유 문장</b><small>정상 · 주의 · 위험</small></div>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>왜 변동폭인가</h3>
+              <ul class="b">
+                <li>점수 하나만 봐서는 그 점수가 우연인지, 형식 때문인지 알 수 없음</li>
+                <li><b>같은 내용, 다른 입력:</b> 뜻은 그대로 두고 형식 · 키워드 · 반복 횟수만 바꾼 케이스를 자동 생성</li>
+                <li><b>변동폭이 곧 신뢰성:</b> 믿을 만한 평가라면 케이스들의 점수가 거의 같아야 함</li>
+              </ul>
+            </div>
+            <div class="blk"><h3>판정 기준값</h3>
+              <div class="tbl"><table>
+                <thead><tr><th>지표</th><th>주의</th><th>위험</th></tr></thead>
+                <tbody>
+                  <tr><td><b>평가 일관성 σ</b></td><td class="num">4점 이상</td><td class="num"><b>6점 이상</b></td></tr>
+                  <tr><td><b>형식 민감성 Δ</b></td><td class="num">12점 이상</td><td class="num"><b>20점 이상</b></td></tr>
+                  <tr><td><b>키워드 상승폭</b></td><td class="num">+8점 이상</td><td class="num"><b>+12점 이상</b></td></tr>
+                </tbody>
+              </table></div>
+              <p class="note">예: 형식 Δ가 20 이상 → “포맷에 따라 평가가 흔들릴 가능성이 있습니다”</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 05 버전 -->
+      <section class="sec" id="versions">
+        <div class="sh"><div class="no"><b>05</b><span class="badge mine">직접 작업</span></div><h2>네 단계 버전</h2></div>
+        <div class="cols">
+          <div class="col">
+            <div class="dg v">
+              <div class="nd"><b>1차 · 신뢰성 감사</b><small>Streamlit · OpenAI · 변동폭으로 정상/주의/위험 판정</small></div><div class="ar"></div>
+              <div class="nd"><b>2차 · 기업 전용 감사</b><small>인사·마케팅·개발 직무 가중치 고정, PDF 리포트 첫 도입</small></div><div class="ar"></div>
+              <div class="nd"><b>3차 · 서버와 웹 화면 분리</b><small>FastAPI · 업로드 → 추출 → 채점 → PDF API, 화면 초안</small></div><div class="ar"></div>
+              <div class="nd hi"><b>최종 · 다중 에이전트 + 교차검증</b><small>Flask · GPT-4o · Claude</small></div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>버전마다 바꾼 이유</h3>
+              <ul class="b">
+                <li><b>1 → 2차:</b> 기업이 쓰는 감사 도구가 되도록 직무 기준을 고정하고 결과를 PDF로 남김</li>
+                <li><b>2 → 3차:</b> 화면과 처리 로직을 나눠 웹에서 쓰도록 API 서버로 분리</li>
+                <li><b>3 → 최종:</b> GPT 평가 + Claude 검증 구조를 얹고, 서버는 Flask로 정리</li>
+              </ul>
+            </div>
+            <div class="blk"><h3>3차 규칙 기반 채점</h3>
+              <div class="rows">
+                <div><span class="k">채점</span><span class="v">LLM 없이 연도 · 숫자 · 글머리표 · 직무 키워드를 세어 6개 축 점수 계산</span></div>
+                <div><span class="k">판정</span><span class="v">평균 60 · 최저 55 이상 합격, 평균 48 미만 또는 최저 40 미만 불합격, 나머지 보류</span></div>
+                <div><span class="k">신뢰성 게이트</span><span class="v">3차 프로토타입: 불합격선은 넘었지만 신뢰성 지표가 하나라도 60 미만이면 합격 대신 보류</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="blk"><h3>2차 직무별 가중치</h3>
+          <div class="tbl"><table>
+            <thead><tr><th>직무</th><th>직무 적합성</th><th>근거성</th><th>명확성</th></tr></thead>
+            <tbody>
+              <tr><td><b>인사(HR)</b></td><td class="num">40%</td><td class="num">40%</td><td class="num">20%</td></tr>
+              <tr><td><b>마케팅</b></td><td class="num">45%</td><td class="num">45%</td><td class="num">10%</td></tr>
+              <tr><td><b>개발</b></td><td class="num">45%</td><td class="num">40%</td><td class="num">15%</td></tr>
+            </tbody>
+          </table></div>
+          <p class="note">이력서 하나를 올리면 세 직무를 자동으로 감사하고 ReportLab으로 PDF 리포트 생성</p>
+        </div>
+      </section>
+
+      <!-- 06 API -->
+      <section class="sec" id="api">
+        <div class="sh"><div class="no"><b>06</b><span class="badge mine">직접 작업</span></div><h2>Flask API 서버<small>Flask · PyPDF2 · python-docx · ReportLab</small></h2></div>
+        <div class="tbl"><table>
+          <thead><tr><th>주소</th><th>방식</th><th>하는 일</th></tr></thead>
+          <tbody>
+            <tr><td><code>/health</code></td><td>GET</td><td>서버가 살아 있는지 확인 (화면이 시작할 때 호출)</td></tr>
+            <tr><td><code>/api/review</code></td><td>POST</td><td>이력서 파일을 받아 평가 결과 JSON으로 응답</td></tr>
+            <tr><td><code>/api/report/pdf</code></td><td>POST</td><td>화면 결과를 받아 A4 PDF 리포트 파일로 응답</td></tr>
+          </tbody>
+        </table></div>
+        <div class="cols">
+          <div class="col">
+            <div class="blk"><h3>파일을 안전하게 받기</h3>
+              <div class="rows">
+                <div><span class="k">크기 제한</span><span class="v">요청 하나에 16MB까지</span></div>
+                <div><span class="k">형식 검사</span><span class="v">txt · pdf · docx만 허용, 구 워드(.doc)는 변환 안내</span></div>
+                <div><span class="k">이름 바꾸기</span><span class="v">업로드한 이름 대신 resume_날짜_시각으로 저장</span></div>
+                <div><span class="k">빈 파일</span><span class="v">저장 실패 · 크기 0이면 바로 오류 응답</span></div>
+                <div><span class="k">개인정보</span><span class="v">성공 · 실패 모두 업로드 파일 삭제, PDF도 내려받은 뒤 삭제</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>텍스트 추출과 실패 처리</h3>
+              <div class="tbl"><table>
+                <thead><tr><th>형식</th><th>추출 방법</th><th>실패하면</th></tr></thead>
+                <tbody>
+                  <tr><td><b>txt</b></td><td>UTF-8 → CP949 → latin-1 순서로 시도</td><td>앞 인코딩으로 못 읽으면 다음 인코딩으로</td></tr>
+                  <tr><td><b>pdf</b></td><td>PyPDF2로 페이지마다 글자 추출</td><td>빈 PDF · 이미지 PDF 안내</td></tr>
+                  <tr><td><b>docx</b></td><td>python-docx로 문단 이어 붙임</td><td>글자가 없으면 안내</td></tr>
+                </tbody>
+              </table></div>
+              <p class="note">추출 결과가 10자 미만이면 평가하지 않음</p>
+            </div>
+            <div class="blk"><h3>PDF 리포트 만들기</h3>
+              <div class="dg">
+                <div class="nd"><b>결과 JSON</b><small>화면이 그대로 전송</small></div><div class="ar"></div>
+                <div class="nd hi"><b>ReportLab</b><small>한글 폰트 등록</small></div><div class="ar"></div>
+                <div class="nd"><b>A4 리포트</b><small>파일로 응답 후 삭제</small></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 07 버그 -->
+      <section class="sec" id="bug">
+        <div class="sh"><div class="no"><b>07</b><span class="badge mine">직접 작업</span></div><h2>Total Trust 계산 오류 수정<small>2026.10 고도화</small></h2></div>
+        <div class="cols">
+          <figure><div class="frame"><img src="../img/aix/trust-before.jpg" alt="수정 전 Total Trust 24.6 Low" width="1004" height="628" loading="lazy"></div>
+            <figcaption><b>수정 전 24.6 Low.</b> 4지표가 100 · 95 · 100 · 75로 높은데 최종 점수만 낮음</figcaption></figure>
+          <figure><div class="frame"><img src="../img/aix/trust-fixed.jpg" alt="수정 후 Total Trust 73.8 Medium" width="1004" height="628" loading="lazy"></div>
+            <figcaption><b>수정 후 73.8 Medium.</b> 같은 값으로 다시 계산</figcaption></figure>
+        </div>
+        <div class="cols">
+          <div class="col">
+            <div class="blk"><h3>원인</h3>
+              <div class="dg v">
+                <div class="nd"><b>설계 정의</b><small>BRS = 편향 위험도 (높을수록 위험) → 공식에서 (1 − BRS)를 곱함</small></div><div class="ar"></div>
+                <div class="nd"><b>평가 엔진</b><small>편향위험 = 100 − 위험도 (높을수록 안전)로 계산해서 보냄</small></div><div class="ar"></div>
+                <div class="nd hi"><b>화면 계산</b><small>이름만 보고 위험도로 받아 그대로 (1 − 값)에 넣음 → 방향이 거꾸로</small></div>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>계산 과정</h3>
+              <div class="tbl"><table>
+                <thead><tr><th>단계</th><th>수정 전</th><th>수정 후</th></tr></thead>
+                <tbody>
+                  <tr><td>가중합</td><td colspan="2">0.34·100 + 0.33·95 + 0.33·100 = 98.35</td></tr>
+                  <tr><td>BRS로 쓰인 값</td><td>75 (안전 점수)</td><td class="hl-a">100 − 75 = 25 (위험도)</td></tr>
+                  <tr><td>× (1 − BRS)</td><td>98.35 × 0.25 = 24.6</td><td class="hl-a">98.35 × 0.75 = 73.8</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+            <div class="blk"><h3>해결과 확인</h3>
+              <ul class="b">
+                <li><b>수정:</b> 화면 공식에 넣기 전에 100 − 값으로 위험도로 되돌림</li>
+                <li><b>확인:</b> 시연 영상의 실제 값을 고친 화면에 넣어 24.6 → 73.8로 바뀌는 것을 재현</li>
+              </ul>
+            </div>
+            <div class="blk"><h3>같은 화면에 보이는 두 신뢰 점수</h3>
+              <div class="tbl"><table>
+                <thead><tr><th>점수</th><th>계산</th></tr></thead>
+                <tbody>
+                  <tr><td><b>종합 신뢰도 92.5</b></td><td>신뢰도 4지표의 평균 (서버 계산)</td></tr>
+                  <tr><td><b>최종 신뢰 점수 73.8</b> (2026.10 고도화 후)</td><td>근거정합성 · 안정성 · 강건성 가중 합 × (1 − 편향 위험) (화면 계산)</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <p class="group-label">시스템 전체</p>
+
+      <!-- 08 평가 에이전트 -->
+      <section class="sec" id="evaluator">
+        <div class="sh"><div class="no"><b>08</b></div><h2>평가 에이전트</h2></div>
+        <div class="cols">
+          <div class="col">
+            <div class="blk"><h3>기준 하나를 채점하는 방식</h3>
+              <div class="units" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+                <div><span>역할</span><p>JHD 회사의 인사 담당자로서 이력서를 평가하는 전문가</p></div>
+                <div><span>기준 설명</span><p>예: 창의성 = 문제 해결의 독창성, 새로운 아이디어 제시 능력</p></div>
+                <div><span>참고 키워드 10개</span><p>예: 혁신 · 개선 · 제안 · 아이디어 · 특허 …</p></div>
+                <div><span>이력서 전문</span><p>서버가 파일에서 추출한 텍스트 그대로</p></div>
+              </div>
+              <div class="dg v" style="margin-top:10px">
+                <div class="nd hi"><b>GPT-4o</b><small>JSON 모드 · temperature 0.3 · 점수(0~20)와 근거 문장 최대 3개</small></div><div class="ar"></div>
+                <div class="nd"><b>5개 기준을 같은 방식으로 반복</b><small>총점(100점) · 평균(20점) → 등급 S · A · B · C · D</small></div>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>설정과 그 이유</h3>
+              <div class="rows">
+                <div><span class="k">기준별 따로 호출</span><span class="v">기준마다 따로 물어 근거 문장이 섞이지 않게 함</span></div>
+                <div><span class="k">JSON 모드</span><span class="v">점수와 근거 문장을 정해진 형식으로 받아 바로 화면에 씀</span></div>
+                <div><span class="k">temperature 0.3</span><span class="v">같은 이력서에 점수가 크게 달라지지 않도록 낮게 둠</span></div>
+              </div>
+            </div>
+            <div class="blk"><h3>JHD 5대 평가 기준 <span class="note" style="font-weight:400">가상 기업 · 회사마다 변경 가능</span></h3>
+              <div class="tbl"><table>
+                <thead><tr><th>항목</th><th>기준 설명</th><th>키워드 (일부)</th></tr></thead>
+                <tbody>
+                  <tr><td><b>창의성</b></td><td>문제 해결의 독창성, 새로운 아이디어 제시</td><td>혁신 · 개선 · 제안 · 특허</td></tr>
+                  <tr><td><b>의사소통</b></td><td>협업 능력, 발표/보고 경험, 대인관계</td><td>협업 · 팀 · 발표 · 조율</td></tr>
+                  <tr><td><b>전문지식</b></td><td>직무 관련 전문 기술, 자격증, 학력</td><td>자격증 · 기술 · 프로젝트</td></tr>
+                  <tr><td><b>인성</b></td><td>성실성, 책임감, 윤리의식, 긍정적 태도</td><td>성실 · 책임 · 정직 · 배려</td></tr>
+                  <tr><td><b>열정</b></td><td>직무에 대한 관심과 열의, 자기계발</td><td>학습 · 성장 · 도전 · 목표</td></tr>
+                </tbody>
+              </table></div>
+              <p class="note">기준 이름 · 설명 · 키워드만 바꾸면 다른 회사의 인재상으로 같은 구조로 평가</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 09 설명 에이전트 -->
+      <section class="sec" id="explainer">
+        <div class="sh"><div class="no"><b>09</b></div><h2>설명 에이전트와 등급</h2></div>
+        <div class="cols">
+          <div class="col">
+            <figure><div class="tbl"><table class="evid">
+                <thead><tr><th>항목</th><th class="num">점수</th><th>이력서에서 찾은 근거</th></tr></thead>
+                <tbody>
+                  <tr><td><b>창의성</b></td><td class="num">13 / 20</td><td>기술을 ‘잘 만드는 것’보다 올바르게 사용하는 것의 중요성을 배우게 되었습니다.</td></tr>
+                  <tr><td><b>의사소통</b></td><td class="num">14 / 20</td><td>프로젝트를 수행할 때에는 속도보다 일관성과 검증 가능성을 중시합니다. 기준이 모호한 상태에서 성급하게 결과를 내기보다는, 초기 정의와 전제를 정리한 뒤 단계적으로 진행합니다. 그 결과 팀 내에서는 분석 기준을 정리하고 문서화하는 역할을 자연스럽게 맡아 왔으며, 이후 작업 과정에서 발생할 수 있는 혼선을 줄이는 데 기여했습니다.</td></tr>
+                </tbody></table></div>
+              <figcaption><b>평가 항목 상세.</b> 결과 화면의 평가 항목 상세 중 2개 항목. 점수 옆에 이력서에서 찾은 근거 문장이 붙습니다.</figcaption></figure>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>코드로 정한 것과 GPT에 맡긴 것</h3>
+              <div class="rows">
+                <div><span class="k">코드</span><span class="v">평균 점수로 등급, 점수 상위 2개 강점 · 하위 2개 약점 → 같은 점수면 언제나 같은 결과</span></div>
+                <div><span class="k">GPT</span><span class="v">점수와 근거를 받아 2~3문장 요약, 3~4문장 종합 의견 (temperature 0.5) → 사람이 읽는 문장만 생성</span></div>
+              </div>
+            </div>
+            <div class="blk"><h3>등급 기준 (20점 만점 평균)</h3>
+              <div class="order"><span>S 18↑</span><span>A 15↑</span><span>B 12↑</span><span>C 9↑</span><span>D 9 미만</span></div>
+            </div>
+            <div class="blk"><h3>서버에서 화면용으로 바꾸는 것</h3>
+              <div class="rows">
+                <div><span class="k">점수</span><span class="v">기준별 0~20점 × 5 → 100점 만점</span></div>
+                <div><span class="k">상태 색</span><span class="v">S · A 양호, B · C 주의, D 위험</span></div>
+                <div><span class="k">근거</span><span class="v">기준마다 첫 번째 근거 문장</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      
+
+      <!-- 10 LLM Judge -->
+      <section class="sec" id="judge">
+        <div class="sh"><div class="no"><b>10</b></div><h2>LLM Judge와 교차검증</h2></div>
+        <div class="tbl"><table>
+          <thead><tr><th>지표</th><th>설계 의도</th><th>현재 코드의 계산</th></tr></thead>
+          <tbody>
+            <tr><td><b>근거정합성</b></td><td>점수가 이력서 근거로 뒷받침되는 비율</td><td>기준별 점수 구간과 근거 문장 개수가 맞으면 1, 아니면 0.5 → 평균</td></tr>
+            <tr><td><b>안정성</b></td><td>같은 입력 · 변형 입력에서 결과가 일관적인가</td><td>5개 점수의 표준편차 → 95 / 80 / 65 / 50</td></tr>
+            <tr><td><b>강건성</b></td><td>표현이 바뀌어도 판단이 사람 기준과 맞는가</td><td>근거가 있는 기준의 비율 + 근거 개수 보너스</td></tr>
+            <tr><td><b>편향위험</b></td><td>직무와 무관한 속성에 의존하는 정도</td><td>점수 최고−최저 차이로 위험도 → 100 − 위험도</td></tr>
+          </tbody>
+        </table></div>
+        <div class="cols">
+          <div class="col">
+            <figure><div class="frame"><img src="../img/aix/reliability.jpg" alt="근거정합성, 안정성, 강건성, 편향위험 4개 지표 막대와 종합 신뢰도 화면" width="900" height="842" loading="lazy"></div>
+              <figcaption><b>신뢰성 지표 화면.</b> 100 · 95 · 100 · 75 → 종합 신뢰도 92.5, Claude 일치도 70%</figcaption></figure>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>점수를 합치는 방법</h3>
+              <div class="dg v">
+                <div class="nd"><b>종합 신뢰도</b><small>4지표 평균 → 90 매우 신뢰 · 80 신뢰 · 70 보통 · 60 주의</small></div><div class="ar"></div>
+                <div class="nd hi"><b>Claude 채점</b><small>이력서 없이 평가 결과만 받아 4지표를 0~100으로 다시 채점 + 검증 의견 (일치도에만 쓰임)</small></div><div class="ar"></div>
+                <div class="nd"><b>교차검증 일치도</b><small>100 − 규칙 점수와 Claude 점수의 평균 차이</small></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 11 결과 -->
+      <section class="sec" id="result">
+        <div class="sh"><div class="no"><b>11</b></div><h2>결과</h2></div>
+        <p>시연 이력서 한 건은 A급 76.0점으로 평가되었습니다. 종합 신뢰도 92.5는 신뢰도 4지표의 평균이고, 최종 신뢰 점수 73.8(2026.10 고도화 후)은 가중 합에 편향 위험을 반영한 값입니다.</p>
+        <div class="cols">
+          <div class="col">
+            <figure><div class="frame" style="background:#fff"><img src="../img/aix/pdf-report.jpg" alt="JHD 회사 이력서 평가 PDF 리포트: 평가 결과 B급 74.0점, 신뢰도 검증, 5대 평가 기준 표" width="1620" height="1550" loading="lazy"></div>
+              <figcaption><b>PDF 리포트.</b> 같은 이력서의 다른 실행에서 만든 PDF 리포트 예시 · B급 74.0점</figcaption></figure>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>시연 이력서 한 건의 결과</h3>
+              <div class="rows">
+                <div><span class="k">평가</span><span class="v">A급 (우수) 76.0점, 강점 인성 · 열정 / 보완점 창의성</span></div>
+                <div><span class="k">근거</span><span class="v">기준마다 이력서 속 문장 최대 3개</span></div>
+                <div><span class="k">신뢰도</span><span class="v">4지표 100 · 95 · 100 · 75 → 종합 92.5 매우 신뢰</span></div>
+                <div><span class="k">교차검증</span><span class="v">Claude 일치도 70%</span></div>
+              </div>
+            </div>
+            <div class="blk"><h3>내가 맡은 부분</h3>
+              <ul class="b">
+                <li><b>1~3차 프로토타입:</b> 신뢰성 감사 → 기업용 기준 · PDF → 서버 분리</li>
+                <li><b>최종 버전:</b> Flask API 서버 · PDF 리포트</li>
+                <li><b>에이전트 흐름 설계:</b> 평가 · 설명 에이전트 흐름</li>
+                <li><b>오류 수정:</b> Total Trust 계산 방향</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <footer><a href="aix-recruit.html">← 프로젝트 요약으로</a><span>장하은 · jhe290609@gmail.com · github.com/haeun910</span></footer>
+</div>
+<script>
+try{history.scrollRestoration='manual'}catch(e){}
+function toTop(){if(!location.hash||location.hash.length<2){window.scrollTo(0,0)}}
+toTop();window.addEventListener('load',toTop);window.addEventListener('pageshow',toTop);
+</script>
+<script>
+document.addEventListener('click',e=>{const ov=document.querySelector('.zoom-ov');if(ov){ov.remove();return}
+const img=e.target.closest('figure img');if(!img||e.target.closest('a'))return;
+const o=document.createElement('div');o.className='zoom-ov';const c=document.createElement('img');c.src=img.currentSrc||img.src;c.alt=img.alt;o.appendChild(c);document.body.appendChild(o)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelector('.zoom-ov')?.remove()});
+</script>
+</body>
+</html>

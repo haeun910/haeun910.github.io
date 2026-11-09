@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>경남 보행안전 · 장하은 포트폴리오</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<meta name="description" content="사고 기록을 겹쳐 먼저 점검할 보행위험 지점을 고르는 분석 · 지도 플랫폼">
+<link rel="stylesheet" href="../assets/project.css">
+</head>
+<body>
+<div class="page">
+  <div class="top">
+    <a href="../index.html#projects">← 장하은 포트폴리오</a>
+    <span>PROJECT 04 · 경남 보행안전</span>
+  </div>
+
+  <header class="phead">
+    <div>
+      <p class="cap">공공데이터 분석 · 점검 우선순위</p>
+      <h1>경남 보행안전</h1>
+      <p class="tagline">사고 기록을 겹쳐 먼저 점검할 곳을 고릅니다</p>
+      <p class="hashes"><span>#공공데이터</span><span>#좌표분석</span><span>#위험점수설계</span><span>#백테스트</span></p>
+    </div>
+    <dl class="meta">
+      <dt>기간</dt><dd>2026.07 – 2026.08 · 2026.10 고도화</dd>
+      <dt>수상</dt><dd><b class="hl-a">최우수상</b></dd>
+      <dt>인원</dt><dd>팀 2인</dd>
+      <dt>담당</dt><dd class="role">데이터 수집 · 탐색 분석 · 위험 점수 · 검증 · 지도</dd>
+      <dt>스택</dt><dd>Python · pandas · scikit-learn · HTML · JavaScript · Leaflet</dd>
+      <dt>링크</dt><dd class="links"><a href="https://haeun910.github.io/gyeongnam-walk-safety/">↗ 플랫폼</a><a href="https://github.com/haeun910/gyeongnam-walk-safety">↗ GitHub</a></dd>
+    </dl>
+  </header>
+
+  <div class="wrap">
+    <nav class="toc" aria-label="목차">
+      <h4>프로젝트</h4>
+      <ol>
+        <li><a href="#overview"><span>01</span>개요</a></li>
+        <li><a href="#system"><span>02</span>시스템 구조</a></li>
+      </ol>
+      <h4>내 작업</h4>
+      <ol class="mine">
+        <li><a href="#data"><span>03</span>데이터 · 탐색 분석</a></li>
+        <li><a href="#score"><span>04</span>후보지 선정 점수</a></li>
+        <li><a href="#platform"><span>05</span>현장점검 플랫폼</a></li>
+        <li><a href="#validate"><span>06</span>점수 검증</a></li>
+      </ol>
+    </nav>
+
+    <main class="content">
+
+      <section class="sec" id="overview">
+        <div class="sh"><div class="no"><b>01</b></div><h2>개요</h2></div>
+        <figure><div class="frame"><img src="../img/walk/platform.jpg" alt="현장점검 플랫폼: 창원시를 선택하면 지도에 우선 검토지 10곳과 1순위 후보지 상세가 표시" width="1400" height="787" loading="lazy"></div>
+          <figcaption><b>플랫폼 화면.</b> 창원시 선택 · 1순위 후보지 상세</figcaption></figure>
+        <div class="cols">
+          <div class="col">
+            <div class="blk"><h3>문제</h3>
+              <ul class="b">
+                <li>경남 18개 시군을 <b>모두 점검할 인력 · 예산이 없음</b></li>
+                <li>민원 · 경험 위주 선정은 사각지대가 생기고, <b>사고 총량은 인구 규모를 그대로 반영</b>해 우선순위 기준이 못 됨</li>
+              </ul>
+            </div>
+            <div class="blk"><h3>해결</h3>
+              <ul class="b">
+                <li>공공 위험자료 9종을 <b>좌표 7,174개</b>로 표준화</li>
+                <li>지점 반경 500m 안의 근거 4가지를 비중대로 더한 <b>위험 점수</b>로 시군별 10곳, <b>후보지 180곳</b> 선정</li>
+                <li>담당자가 바로 쓰는 <b>지도 플랫폼</b>으로 제공</li>
+              </ul>
+            </div>
+          </div>
+          <div class="col">
+            <dl class="spec">
+              <dt>데이터</dt><dd>사고 · 다발지역 · 사망사고 · 위험정보 · 생활시설 · 보호구역 · 인구</dd>
+              <dt>출처</dt><dd>TAAS · TCIC · 공공데이터포털 등</dd>
+            </dl>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="system">
+        <div class="sh"><div class="no"><b>02</b></div><h2>원천 파일 → 분석 스크립트 → 지도</h2></div>
+        <figure><div class="frame scroll" style="background:#fff"><img src="../img/walk/architecture.png" alt="경남 보행안전 구조도: 공공 자료 → Python 분석 · 검증 → 결과 파일 → GitHub Pages 웹 지도 플랫폼" width="2800" height="801" loading="lazy"></div>
+          <figcaption><b>전체 구조.</b> 분석은 Python에서 한 번 하고, 결과 파일을 서버 없는 웹 지도가 읽어 화면에서 다시 계산합니다.</figcaption></figure>
+        <div class="units">
+          <div><span>재현 가능</span><b>같은 입력이면 같은 결과</b><p>원천 파일 → 스크립트 → 결과 파일</p></div>
+          <div><span>공통 범위</span><b>18개 시군 공통 자료만</b><p>일부 지역에만 있는 자료는 제외</p></div>
+          <div><span>웹 계산 일치</span><b>분석 코드와 180곳 일치</b><p>화면에서 다시 계산한 후보지가 분석 코드 결과와 모두 같음</p></div>
+        </div>
+      </section>
+
+      <p class="group-label">내 작업</p>
+
+      <section class="sec" id="data">
+        <div class="sh"><div class="no"><b>03</b></div><h2>데이터 정제와 탐색 분석</h2></div>
+        <div class="cols">
+          <div class="col">
+            <div class="blk"><h3>공통 정제 4단계</h3>
+              <div class="dg v">
+                <div class="nd"><b>① 시군명</b><small>마산 · 진해 등 옛 지명을 창원시로 통합</small></div><div class="ar"></div>
+                <div class="nd"><b>② 숫자</b><small>쉼표 · 단위 · 빈 값 정리</small></div><div class="ar"></div>
+                <div class="nd"><b>③ 좌표</b><small>경남 범위(위도 34.45–35.95 · 경도 127.55–129.3) 밖은 제외</small></div><div class="ar"></div>
+                <div class="nd hi"><b>④ 공통 범위</b><small>18개 시군 중 일부에만 있는 자료 제외</small></div>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>탐색 분석에서 찾은 것</h3>
+              <ul class="b">
+                <li><b>총량의 한계:</b> 사고 총량 순위가 곧 인구 순위 → 위험 비교 기준이 될 수 없음</li>
+                <li><b>순위 역전:</b> 통영 · 사천은 총량 6–7위지만 인구보정 사고율 1–2위</li>
+                <li><b>결정:</b> 총량 대신 <b>지점 단위 근거를 겹쳐 보는 점수</b>로 설계, 행정구역이 아닌 좌표로 집계해 지점까지 특정</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="score">
+        <div class="sh"><div class="no"><b>04</b></div><h2>후보지 선정 점수</h2></div>
+        <figure><div class="frame scroll" style="background:#fff"><img src="../img/walk/score.png" alt="위험 기록 7,174곳 → 후보 지점 → 주변 근거 세기 → 위험 점수 → 500m 간격 정리 → 후보지 180곳, 비중은 지점 자체 위험 30 · 위험 기록 겹침 30 · 사고 심각도 25 · 보행 수요 15" width="2600" height="495" loading="lazy"></div>
+          <figcaption><b>선정 과정과 비중.</b> 지점 자체 위험 30 · 위험 기록 겹침 30 · 사고 심각도 25 · 보행 수요 15</figcaption></figure>
+        <div class="rows">
+          <div><span class="k">지점 반경 500m</span><span class="v">점수 근거 4가지는 모두 반경 500m 안에서 셈. 300m는 화면에 보여 주는 참고 개수에만 씀</span></div>
+          <div><span class="k">중첩에 가중</span><span class="v">한 종류 근거만 많은 곳보다 서로 다른 근거가 겹치는 곳을 우선</span></div>
+          <div><span class="k">시군별 할당</span><span class="v">큰 도시에 몰리지 않게 시군마다 10곳</span></div>
+          <div><span class="k">후보 간 간격 500m</span><span class="v">간격 500m = 점검 반경. 한 후보가 다른 후보 반경 안에 들지 않게 띄움. 검증 기간에서 간격 120 · 250 · 500m(13.7 / 14.8 / 17.0%)를 비교해 확정</span></div>
+        </div>
+      </section>
+
+      <section class="sec" id="platform">
+        <div class="sh"><div class="no"><b>05</b></div><h2>현장점검 플랫폼</h2></div>
+        <div class="cols">
+          <div class="col">
+            <figure><div class="frame"><img src="../img/walk/map.jpg" alt="경남 지도 위에 후보지 180곳을 표시한 분석 지도" width="900" height="967" loading="lazy"></div>
+              <figcaption><b>후보지 180곳 분포.</b></figcaption></figure>
+          </div>
+          <div class="col">
+            <div class="rows">
+              <div><span class="k">필터</span><span class="v">시군 · 점수 하한 · 위험 유형 · 시/군 구분</span></div>
+              <div><span class="k">지도</span><span class="v">후보지 · 사고 · 생활시설 · 보호구역 레이어, 지점 반경 500m</span></div>
+              <div><span class="k">상세</span><span class="v">반경 내 사망사고 · 다발지역 · 생활시설 · 보호구역 건수</span></div>
+              <div><span class="k">개선안</span><span class="v">위험 유형별 권장 점검 묶음과 우선순위</span></div>
+              <div><span class="k">근거 공개</span><span class="v">점수 계산식과 반경 기준을 화면에서 공개, 왜 뽑혔는지 수치로</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      <section class="sec" id="validate">
+        <div class="sh"><div class="no"><b>06</b></div><h2>과거 자료로 이후 사고 맞히기<small>2026.10 고도화</small></h2></div>
+        <div class="cols">
+          <div class="col">
+            <div class="blk"><h3>재는 방법</h3>
+              <div class="rows">
+                <div><span class="k">과거 자료만</span><span class="v">2021년까지 자료만 사용, 그 뒤는 가림</span></div>
+                <div><span class="k">같은 방법으로 선정</span><span class="v">180곳 · 반경 500m = 점검 범위</span></div>
+                <div><span class="k">이후 실제 사고</span><span class="v">2022 – 24년 사망사고 468건 + 새로 지정된 사고다발지역 89곳 = 557건</span></div>
+                <div><span class="k">포착률</span><span class="v">이후 사고가 미리 고른 곳 반경 500m 안에서 난 비율</span></div>
+              </div>
+            </div>
+            <p class="note">후보지 반경을 합치면 경남 면적의 1.2%이고, 그 안에서 이후 사고 4건 중 1건이 났습니다.</p>
+          </div>
+          <div class="col">
+            <div class="blk"><h3>결과 · 이후 실제 사고 557건</h3>
+              <div class="tbl"><table>
+                <thead><tr><th>고르는 방식 (각 180곳 · 반경 500m)</th><th>포착률</th></tr></thead>
+                <tbody>
+                  <tr><td><b>위험 점수 · 내가 정한 비중</b></td><td class="num"><b>25.1% (140건)</b></td></tr>
+                  <tr><td>위험 점수 · 머신러닝이 찾은 비중</td><td class="num">27.3%</td></tr>
+                  <tr><td>과거 사망사고가 많은 곳만</td><td class="num">22.3%</td></tr>
+                  <tr><td>무작위로 고른 위험 기록</td><td class="num">10.5%</td></tr>
+                  <tr><td>무작위로 고른 생활시설</td><td class="num">5.9%</td></tr>
+                </tbody>
+              </table></div>
+              <p class="note">140건 = 사망사고 76 + 새 사고다발지역 64. 과거 사망사고 많은 곳만 고른 경우보다 2.8%p 높음. 무작위 생활시설의 약 4배, 무작위 위험 기록의 약 2.4배. 2019년 기준으로 반복하면 위험 점수 20.1% vs 과거 사망사고 많은 곳 20.2%로 비슷합니다.</p>
+            </div>
+            <div class="blk"><h3>로지스틱 회귀로 비중 확인</h3>
+              <ul class="b">
+                <li>근거 4가지 점수로 그 지점 500m 안에서 사고가 날지 맞히는 모델을 학습해, 데이터가 고른 비중과 비교</li>
+                <li>머신러닝 비중을 쓰면 포착률 27.3%, AUC 0.829 → 0.844</li>
+                <li>기본값은 설명하기 쉬운 룰 기반 비중으로 두고, 학습한 비중은 플랫폼에서 고를 수 있게 제공</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <footer><a href="../index.html#projects">← 포트폴리오로 돌아가기</a><span>장하은 · jhe290609@gmail.com · github.com/haeun910</span></footer>
+</div>
+<script>
+try{history.scrollRestoration='manual'}catch(e){}
+function toTop(){if(!location.hash||location.hash.length<2){window.scrollTo(0,0)}}
+toTop();window.addEventListener('load',toTop);window.addEventListener('pageshow',toTop);
+document.addEventListener('click',e=>{const ov=document.querySelector('.zoom-ov');if(ov){ov.remove();return}
+const img=e.target.closest('figure img');if(!img||e.target.closest('a'))return;
+const o=document.createElement('div');o.className='zoom-ov';const c=document.createElement('img');c.src=img.currentSrc||img.src;c.alt=img.alt;o.appendChild(c);document.body.appendChild(o)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelector('.zoom-ov')?.remove()});
+</script>
+</body>
+</html>
