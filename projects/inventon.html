@@ -85,13 +85,13 @@
 
       <section class="sec" id="state">
         <div class="sh"><div class="no"><b>03</b></div><h2>정상 → 불안 → 보상 상태 머신</h2></div>
-        <figure><div class="frame scroll" style="background:#fff"><img src="../img/inventon/state.png" alt="상태도: 0 정상에서 불안 행동을 감지하면 1 불안(불빛 · 화면 · 소리), 불안 행동이 사라지면 5초 세기 시작, 불안 없이 5초가 지나면 2 보상(간식) 후 0으로 복귀" width="2852" height="528" loading="lazy"></div>
-          <figcaption><b>상태 전이.</b> 5초가 되기 전에 불안 행동이 다시 보이면 처음부터 다시 세고, 보상을 주지 않습니다.</figcaption></figure>
+        <figure><div class="frame scroll" style="background:#fff"><img src="../img/inventon/state.png" alt="상태도: 0 정상에서 불안 행동을 감지하면 1 불안(불빛 · 화면 · 소리), 불안 행동이 사라지면 3초 세기 시작, 불안 없이 3초가 지나면 2 보상(간식) 후 0으로 복귀" width="2852" height="528" loading="lazy"></div>
+          <figcaption><b>상태 전이.</b> 3초가 되기 전에 불안 행동이 다시 보이면 처음부터 다시 세고, 보상을 주지 않습니다.</figcaption></figure>
         <div class="cols">
           <div class="col">
             <div class="blk"><h3>설계한 규칙</h3>
               <ul class="b">
-                <li><b>진정됐을 때만 보상:</b> 불안이 멈춘 뒤 5초 동안 불안 행동이 보이지 않으면 간식을 줘서, AI가 한 순간 잘못 판단해도 간식이 나가지 않게 함</li>
+                <li><b>진정됐을 때만 보상:</b> 불안이 멈춘 뒤 3초 동안 불안 행동이 보이지 않으면 간식을 줘서, AI가 한 순간 잘못 판단해도 간식이 나가지 않게 함</li>
                 <li><b>바뀔 때만 전송:</b> 상태가 바뀐 순간에만 숫자 한 글자를 보내 Arduino가 같은 동작을 반복하지 않음</li>
                 <li><b>사진은 한 장만:</b> 불안이 새로 시작될 때만 사진 1장을 기록해 같은 장면이 계속 쌓이지 않게 함</li>
               </ul>
