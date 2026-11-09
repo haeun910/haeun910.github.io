@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
 <meta name="description" content="LLM에 보내기 전에 민감정보부터 가리는 실시간 AI 마스킹 플랫폼">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/project.css">
 </head>
 <body>
@@ -28,7 +29,8 @@
       <dt>기간</dt><dd>2026.03 – 2026.06 · 캡스톤디자인</dd>
       <dt>인원</dt><dd>팀 4인</dd>
       <dt>담당</dt><dd class="role">진행 총괄 · 데이터셋 구축 · 모델 파인튜닝 · 랜딩·로그인</dd>
-      <dt>스택</dt><dd>KLUE-RoBERTa · FastAPI · React · Supabase</dd>
+      <dt>내 스택</dt><dd>PyTorch · Transformers · KLUE-RoBERTa · React</dd>
+      <dt>팀 스택</dt><dd>FastAPI · Supabase · Vercel · Hugging Face Spaces</dd>
       <dt>링크</dt><dd class="links"><a href="https://veil-ai-platform.vercel.app">↗ 서비스</a><a href="https://github.com/haeun910/leak_prevention_platform_haeun">↗ GitHub</a></dd>
     </dl>
   </header>
@@ -200,7 +202,7 @@
                   <tr><td>KcBERT</td><td class="num">87.27</td><td class="num">91.04</td><td class="num">89.12</td></tr>
                 </tbody>
               </table></div>
-              <p class="note">단위 %. 평가 기준: 같은 출처 · 생성 규칙으로 만든 학습 미사용 문장 4,996개. 8 에폭 모델 기준, KLUE-RoBERTa가 세 지표 모두 1위</p>
+              <p class="note">단위 %. 평가 기준: 같은 출처 · 생성 규칙으로 만든 학습 미사용 문장 4,996개, 탐지 항목(이름 · 계좌 등) 단위로 맞힌 경우만 정답(seqeval). 8 에폭 모델 기준, KLUE-RoBERTa가 세 지표 모두 1위</p>
             </div>
           </div>
           <div class="col">
