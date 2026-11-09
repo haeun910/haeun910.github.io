@@ -3,23 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>장하다 1호 · 장하은 포트폴리오</title>
+<title>반려견 분리불안 완화 AIoT · 장하은 포트폴리오</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
-<meta name="description" content="반려견 분리불안 감지 · 완화 기기 장하다 1호">
+<meta name="description" content="1인 가구 반려견의 불안 행동을 카메라로 감지해 바로 달래 주는 기기">
 <link rel="stylesheet" href="../assets/project.css">
 </head>
 <body>
 <div class="page">
   <div class="top">
     <a href="../index.html#projects">← 장하은 포트폴리오</a>
-    <span>PROJECT 08 · 장하다 1호</span>
+    <span>PROJECT 08 · 반려견 분리불안 완화 AIoT</span>
   </div>
 
   <header class="phead">
     <div>
       <p class="cap">1인 가구 반려견 분리불안 완화 AIoT 시스템</p>
-      <h1>장하다 1호</h1>
+      <h1>반려견 분리불안 완화 AIoT</h1>
       <p class="tagline">반려견 분리불안 감지 · 완화 기기</p>
       <p class="hashes"><span>#엣지AI</span><span>#단계제어</span><span>#FastAPI</span><span>#RaspberryPi5</span></p>
     </div>
@@ -72,7 +72,7 @@
 
       <section class="sec" id="system">
         <div class="sh"><div class="no"><b>02</b></div><h2>카메라 → 엣지 AI → 하드웨어 → 웹</h2></div>
-        <figure><div class="frame scroll" style="background:#fff"><img src="../img/inventon/architecture.png" alt="장하다 1호 구조도: 카메라 → Raspberry Pi 5(행동 탐지 · 단계 제어 · 기록 전송) → Arduino 제어 보드와 FastAPI 기록 서버 → 보호자 웹 화면" width="2800" height="633" loading="lazy"></div>
+        <figure><div class="frame scroll" style="background:#fff"><img src="../img/inventon/architecture.png" alt="구조도: 카메라 → Raspberry Pi 5(행동 탐지 · 단계 제어 · 기록 전송) → Arduino 제어 보드와 FastAPI 기록 서버 → 보호자 웹 화면" width="2800" height="633" loading="lazy"></div>
           <figcaption><b>전체 구조.</b> Pi가 판단하고, Arduino는 받은 상태 코드대로만 움직이며, 기록은 서버로 보냅니다.</figcaption></figure>
         <div class="units">
           <div><span>Raspberry Pi 5</span><b>판단</b><p>YOLOv11n 행동 탐지(신뢰도 0.5 이상) + 상태 머신</p></div>
