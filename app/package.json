@@ -5,11 +5,12 @@
   "scripts": {
     "dev": "VITE_DEMO=1 vite",
     "build": "vite build",
-    "build:demo": "VITE_DEMO=1 VITE_BASE=/toeic-next/ VITE_OUT_DIR=../toeic-next vite build",
+    "build:demo": "node scripts/make-demo-words.mjs content/words.json && VITE_DEMO=1 VITE_BASE=/toeic-next/ VITE_OUT_DIR=../toeic-next vite build",
     "build:prod": "VITE_OUT_DIR=../toeic vite build",
     "preview": "vite preview",
     "demo:words": "node scripts/make-demo-words.mjs content/words.json",
-    "seed": "node scripts/seed-words.mjs content/words.json"
+    "seed": "node scripts/seed-words.mjs content/words.json",
+    "build:free": "node scripts/make-demo-words.mjs content/words.json --free && VITE_FREE=1 VITE_STORAGE_NS=free- VITE_BASE=/toeic-free/ VITE_OUT_DIR=../toeic-free vite build"
   },
   "license": "UNLICENSED",
   "type": "module",

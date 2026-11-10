@@ -1,5 +1,5 @@
 // Product views around the study app: landing, sign-in, plans & payment, account, legal pages, error screen.
-import { CONFIG, BASE } from "./config.js";
+import { CONFIG, BASE, SEEN_KEY } from "./config.js";
 import { CATALOG, WORDS, lockedCount } from "./content.js";
 import { S, replaceState, blank, flushSave } from "./state.js";
 import { esc, toast, fmtDate, won, $ } from "./ui.js";
@@ -16,9 +16,12 @@ export function renderLanding() {
   <section class="sheet landing">
     <span class="eyebrow">TOEIC 단어 · 문장으로 외우기</span>
     <h1 class="display">단어가 아니라<br>문장이 외워져요</h1>
-    <p class="lead">토익 빈출 단어 ${total()}개를 실제 시험에 나오는 문장 속에서 배워요. 문장 배열, 빈칸 퀴즈, 해석 퀴즈로 바로 써 보고, 틀린 단어는 다음 날 자동으로 다시 나와요.</p>
-    <div class="row"><a class="btn primary big" href="#/home" id="start">무료로 시작하기</a><a class="btn big" href="#/login">로그인</a></div>
-    <p class="muted" style="margin:0">가입 없이 무료 단어 ${WORDS.length || 230}개를 바로 배울 수 있어요. 로그인하면 기록이 계정에 저장돼요.</p>
+    <p class="lead">토익 빈출 단어${CONFIG.freeOnly ? "" : " " + total() + "개"}를 실제 시험에 나오는 문장 속에서 배워요. 문장 배열, 빈칸 퀴즈, 해석 퀴즈로 바로 써 보고, 틀린 단어는 다음 날 자동으로 다시 나와요.</p>
+    ${CONFIG.freeOnly
+      ? `<div class="row"><a class="btn primary big" href="#/home" id="start">바로 시작하기</a></div>
+    <p class="muted" style="margin:0">지금은 무료 베타예요. 가입 없이 600점 필수 단어·표현 ${WORDS.length}개를 배울 수 있어요. 학습 기록은 이 기기의 브라우저에만 저장돼요.</p>`
+      : `<div class="row"><a class="btn primary big" href="#/home" id="start">무료로 시작하기</a><a class="btn big" href="#/login">로그인</a></div>
+    <p class="muted" style="margin:0">가입 없이 무료 단어 ${WORDS.length || 230}개를 바로 배울 수 있어요. 로그인하면 기록이 계정에 저장돼요.</p>`}
   </section>
   <section class="sheet">
     <h2>이렇게 배워요</h2>
@@ -27,7 +30,7 @@ export function renderLanding() {
     <div class="feat"><b>3. 빈칸·해석 퀴즈</b><span>파트5 형식의 4지선다로 확인해요. 틀리면 헷갈린 단어와 함께 단어장에 담겨요.</span></div>
     <div class="feat"><b>4. 간격 복습</b><span>맞힌 단어는 1·3·7·14·30·60일 뒤에, 틀린 단어는 다음 날 다시 나와요.</span></div>
   </section>
-  <section class="sheet">
+  ${CONFIG.freeOnly ? "" : `<section class="sheet">
     <h2>무료와 이용권</h2>
     <table class="cmp"><tr><th></th><th>무료</th><th>이용권</th></tr>
       <tr><td>단어·표현</td><td>${WORDS.length || 230}개</td><td>${total()}개 전부</td></tr>
@@ -36,8 +39,8 @@ export function renderLanding() {
       <tr><td>단어장·기록장·간격 복습</td><td>O</td><td>O</td></tr>
       <tr><td>기기 간 동기화</td><td>로그인 시</td><td>로그인 시</td></tr></table>
     <a class="btn" href="#/plans">이용권 가격 보기</a>
-  </section>`;
-  $("start").onclick = () => { try { localStorage.setItem("toeic-seen", "1"); } catch (e) { } };
+  </section>`}`;
+  $("start").onclick = () => { try { localStorage.setItem(SEEN_KEY, "1"); } catch (e) { } };
 }
 
 // ---------- Sign in ----------

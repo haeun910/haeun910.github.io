@@ -4,8 +4,10 @@ const DEMO_KEY = "toeic-demo-account";
 
 export function createLocalBackend() {
   let words = null, catalog = null, authCbs = [];
-  const read = () => { try { return JSON.parse(localStorage.getItem(DEMO_KEY) || "null"); } catch (e) { return null; } };
-  const write = v => { try { if (v) localStorage.setItem(DEMO_KEY, JSON.stringify(v)); else localStorage.removeItem(DEMO_KEY); } catch (e) { } };
+  // The free beta is guest-only: it never sees the demo's account (same origin, same storage).
+  const FREE = import.meta.env.VITE_FREE === "1";
+  const read = () => { if (FREE) return null; try { return JSON.parse(localStorage.getItem(DEMO_KEY) || "null"); } catch (e) { return null; } };
+  const write = v => { if (FREE) return; try { if (v) localStorage.setItem(DEMO_KEY, JSON.stringify(v)); else localStorage.removeItem(DEMO_KEY); } catch (e) { } };
   let acct = read();
 
   async function ensureWords() {
@@ -23,7 +25,7 @@ export function createLocalBackend() {
     onAuth(cb) { authCbs.push(cb); },
     _setUser(u) { b.user = u; authCbs.forEach(cb => cb(u)); },
 
-    async sendCode(email) { acct = { id: "demo-" + btoa(unescape(encodeURIComponent(email))).replace(/[^a-z0-9]/gi, "").slice(0, 12), email, pass: null, progress: null }; return { demoCode: "123456" }; },
+    async sendCode(email) { if (FREE) throw new Error("무료 베타에서는 로그인이 없어요"); acct = { id: "demo-" + btoa(unescape(encodeURIComponent(email))).replace(/[^a-z0-9]/gi, "").slice(0, 12), email, pass: null, progress: null }; return { demoCode: "123456" }; },
     async verifyCode(email, token) {
       if (token !== "123456") throw new Error("코드가 맞지 않아요 (데모 코드: 123456)");
       const prev = read(); if (prev && prev.email === email) acct = prev;
@@ -33,7 +35,8 @@ export function createLocalBackend() {
     async signOut() { acct = null; b._setUser(null); },
     async deleteAccount() { write(null); acct = null; b._setUser(null); },
 
-    async getEntitlement() { const p = b.user && acct && acct.pass; if (p && new Date(p.ends_at) > new Date()) return { active: true, ends_at: p.ends_at, plan_id: p.plan_id }; return { active: false }; },
+    // Free beta: the bundled words are the free words only, so everything in the bundle is open.
+    async getEntitlement() { if (import.meta.env.VITE_FREE === "1") return { active: true, free_beta: true }; const p = b.user && acct && acct.pass; if (p && new Date(p.ends_at) > new Date()) return { active: true, ends_at: p.ends_at, plan_id: p.plan_id }; return { active: false }; },
     async getCatalog() { await ensureWords(); return catalog; },
     async getWords() { await ensureWords(); const ent = await b.getEntitlement(); return words.filter(w => ent.active || w.tier === "free"); },
 

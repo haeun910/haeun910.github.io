@@ -3,6 +3,11 @@ const env = import.meta.env;
 
 export const CONFIG = {
   demo: env.VITE_DEMO === "1",
+  // Free beta build: free words only, no sign-in, no payment, no business notice. Progress stays in the browser.
+  freeOnly: env.VITE_FREE === "1",
+  // Prefix for every localStorage key, so builds served from the same origin (/toeic/, /toeic-next/, /toeic-free/) never share data.
+  storageNs: env.VITE_STORAGE_NS || "",
+  feedbackUrl: env.VITE_FEEDBACK_URL || "",
   supabaseUrl: env.VITE_SUPABASE_URL || "",
   supabaseAnonKey: env.VITE_SUPABASE_ANON_KEY || "",
   tossClientKey: env.VITE_TOSS_CLIENT_KEY || "",
@@ -24,3 +29,4 @@ export const CONFIG = {
 };
 
 export const BASE = import.meta.env.BASE_URL; // e.g. "/toeic/"
+export const SEEN_KEY = CONFIG.storageNs + "toeic-seen";
